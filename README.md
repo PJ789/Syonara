@@ -27,7 +27,7 @@ The code assumes three circuits are assembled:
 
 Two 4017 decade counters are used to iterate over the 20 keyboard matrix columns in tandem.
 
-A74hc165 shift register is used to read the rows of the matrix, and convert into a serialized byte value, which is read & decoded. (An algorithm in the firmware ensures that there is no misread due to two columns being scanned at the same time).
+A 74hc165 shift register is used to read the rows of the matrix, and convert into a serialized byte value, which is read & decoded. (An algorithm in the firmware ensures that there is no misread due to two columns being scanned at the same time).
 
 ### Circuit 2: Caps Lock, Num Lock, Scroll Lock, and Application LEDs circuit
 
