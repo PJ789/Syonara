@@ -11,6 +11,8 @@
  -  20x 1N4148 signal diodes to protect outputs from decade counters
  -  8x  1N4148 signal diodes to protect inputs to shift register (recommended)
  -  1x  10K ohm DIP exclusion Network Resistor array 9pin acting as pull down resistors on the 8 shift register inputs
+ or
+ -  8x  10K ohm 0.25w resistors acting as pull down resistors on the 8 shift register inputs
 
 ## Circuit 2: Caps Lock, Num Lock, Scroll Lock, and Application LEDs circuit
  -  4x  ultra bright LEDs, any colour (recommend red, blue, green, yellow)
