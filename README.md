@@ -39,4 +39,4 @@ A simple amplifier circuit to drive the keyboard RGB backlight using transistors
 
 ## Improvements?
 
-You could perhaps use a serial to parallel IC to drive the LEDs from a single pin on the Arduino. Or add a brightness control to the circuit, perhaps using an analog input. 
+You could perhaps use a serial to parallel IC to drive the caps lock, num lock, scroll lock LEDs from a single pin on the Arduino. Or add a brightness control to the backlight circuit, perhaps using an analog input. 
