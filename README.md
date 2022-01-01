@@ -31,7 +31,7 @@ A 74hc165 shift register is used to read the rows of the matrix, and convert int
 
 ### Circuit 2: Caps Lock, Num Lock, Scroll Lock, and Application LEDs circuit
 
-A simple LED current limiting circuit for the LED indicators. Simple high/low switching is used to turn the LEDs on/off as keyboard LED status is changed.
+A simple LED current limiting circuit for the LED indicators. Arduino pin high/low switching is used to turn the LEDs on/off as keyboard LED status is changed.
 
 ### Circuit 3: Keyboard RGB back light circuit
 
