@@ -25,14 +25,14 @@
 #define DEBUG                     0
 
 #define APPLICATION_LED           0
-#define CAPS_LOCK_LED             1
+#define NUM_LOCK_LED              1
 #define SHIFT_OR_LOAD_PIN         2
 #define CLOCK_PIN                 3
 #define SERIAL_PIN                6
 #define RED_PIN                   9
 #define GREEN_PIN                10
 #define BLUE_PIN                 11
-#define NUM_LOCK_LED             14
+#define CAPS_LOCK_LED            14
 #define COUNTER_2_RESET_PIN      15
 #define COUNTER_2_CLOCK_PIN      16
 
@@ -353,9 +353,9 @@ SIGNAL(TIMER0_COMPA_vect)
     caps_lock_on   = Keyboard.getLedStatus(LED_CAPS_LOCK);
     scroll_lock_on = Keyboard.getLedStatus(LED_SCROLL_LOCK);
     num_lock_on    = Keyboard.getLedStatus(LED_NUM_LOCK);
-    digitalWrite(NUM_LOCK_LED,    (caps_lock_on)?   HIGH : LOW);
+    digitalWrite(CAPS_LOCK_LED,   (caps_lock_on)?   HIGH : LOW);
     digitalWrite(SCROLL_LOCK_LED, (scroll_lock_on)? HIGH : LOW);
-    digitalWrite(CAPS_LOCK_LED,   (num_lock_on)?    HIGH : LOW);
+    digitalWrite(NUM_LOCK_LED,    (num_lock_on)?    HIGH : LOW);
     led_status_update = false;
   }
 
