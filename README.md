@@ -35,7 +35,7 @@ A simple LED current limiting circuit for the LED indicators. Arduino pin high/l
 
 ### Circuit 3: Keyboard RGB back light circuit
 
-A simple amplifier circuit tto drive the keyboard RGB backlight using transistors or MOSFETs. PWM is used to control brightness of each RGB line.
+A simple amplifier circuit to drive the keyboard RGB backlight using transistors or MOSFETs. PWM is used to control brightness of each RGB line, allowing colour transition effects.
 
 ## Improvements?
 
