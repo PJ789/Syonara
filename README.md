@@ -37,3 +37,6 @@ A simple LED current limiting circuit for the LED indicators. Simple high/low sw
 
 A simple amplifier circuit tto drive the keyboard RGB backlight using transistors or MOSFETs. PWM is used to control brightness of each RGB line.
 
+## Improvements?
+
+You could perhaps use a serial to parallel IC to drive the LEDs from a single pin on the Arduino. Or add a brightness control to the circuit, perhaps using an analog input. 
