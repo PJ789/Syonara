@@ -16,10 +16,11 @@
  -  8x  10K ohm 0.25w resistors acting as pull down resistors on the 8 shift register inputs
 
 ## Circuit 2: Caps Lock, Num Lock, Scroll Lock, and Application LEDs circuit
- -  9x WS2812 Neopixel LEDs in a strip
+ -  9x WS2812 Neopixel LEDs in a strip, stuck where the original LEDs are situated
+ -  1x piece of insulating tape to go under the Neopixels to avoid shorts
 
-## Circuit 3: Keyboard RGB back light circuit;
- -  1x  prototype board, to install under keypad
+## Circuit 3: Keyboard RGB back light switch circuit;
+ -  1x prototype board, to install under keypad
 
  _Either_
  -  3x NPN transistors as current amplifier to SS micro pinout
