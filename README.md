@@ -21,19 +21,21 @@ https://github.com/arduino-libraries/Keyboard/pull/61
 
 ## Electronics
 
-The code assumes three circuits are assembled:
+The code requires three circuits are assembled:
 
 ### Circuit 1: keyboard scanning circuit
 
 Two 4017 decade counters are used to iterate over the 20 keyboard matrix columns in tandem.
 
-A 74hc165 shift register is used to read the rows of the matrix, and convert into a serialized byte value.
+A 74hc165 shift register is used to read the 8 rows of the matrix, and convert the output into a serialized byte value.
 
 The shift register output is read & decoded by the Syonara firmware. (An algorithm in the firmware ensures that there is no misread due to two columns being scanned at the same time).
 
+The scanning circuit is 'hot-wired' onto the original (unused) circuit board, using matrix column/row test points as a solder pads.
+
 ### Circuit 2: Caps Lock, Num Lock, Scroll Lock, and Application LEDs circuit
 
-A simple 9 Neopixel strip (taken from a 144 pixels/meter strip) replaces the original LEDs. A piece of insulating tape under the LEDs avoids shorts.
+A simple 9 Neopixel strip (taken from a 144 pixels/meter strip) replaces the original LEDs, and is placed on top of the original (unused) keyboard circuit. A piece of insulating tape under the LEDs avoids shorts.
 
 The Syonara firmware sets the correspondng LED colours for each status indication.
 
