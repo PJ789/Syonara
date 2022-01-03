@@ -242,25 +242,24 @@ uint8_t read_shift_register(int other_counter_clock_pin)
   uint8_t incoming1 = 0;
   uint8_t incoming2 = 0;
   uint8_t initial   = 0;
-  bool    mismatch  = false;
 
-  // read the value from the rows
-  incoming1 = read_shift_register2();
-
-  // Is any keypress detected on this decade counter column?
-  if (!incoming1)
-  {
-    return 0;
-  }
- 
-  initial   = incoming1;
-
-  // =========================================
-  // now scan across the other 9 columns of the other decade counter
-  // to eliminate false key presses
   do
   {
-    mismatch=false;
+    // read the value from the rows
+    incoming1 = read_shift_register2();
+
+    if (!incoming1)
+    {
+      return 0;
+    }
+   
+    initial   = incoming1;
+
+    // =========================================
+    // now scan across the other 9 columns of the other decade counter
+    // to eliminate false key presses
+    // Is any keypress detected on this decade counter column?
+
     increment_decade_counter( other_counter_clock_pin );
     for( uint8_t i=0; i<9; i++)
     {
@@ -272,12 +271,7 @@ uint8_t read_shift_register(int other_counter_clock_pin)
       increment_decade_counter( other_counter_clock_pin );
     }
     // Has the shift register changed value while we've been scanning? if so, try again
-    if (initial != read_shift_register2())
-    {
-      mismatch = true;
-      initial  = read_shift_register2();
-    }
-  } while(mismatch);
+  } while(initial != read_shift_register2());
 
   return incoming1;
 }
