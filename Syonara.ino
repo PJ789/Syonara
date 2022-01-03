@@ -171,12 +171,12 @@ void loop() {
  
   key_press_detected = false;
 
-  for (uint8_t i = 0; i <10; i++)
+  for (uint8_t column = 0; column <10; column++)
   {
     incoming1 = read_shift_register( COUNTER_2_CLOCK_PIN);
-    decode( i,    incoming1 );
+    decode( column,    incoming1 );
     incoming2 = read_shift_register( COUNTER_1_CLOCK_PIN);
-    decode( i+10, incoming2 );
+    decode( column+10, incoming2 );
 
     key_press_detected = incoming1||incoming2||key_press_detected;
     
@@ -279,64 +279,47 @@ void decode( uint8_t column, uint8_t incoming_byte)
   char key;
   uint8_t bit_selector;
   uint8_t last_incoming_byte;
+  uint8_t all_incoming_bits;
   
   last_incoming_byte = last_incoming[column];
 
+  all_incoming_bits = incoming_byte | last_incoming_byte; 
+
   // is a key pressed, or might a key be released?
-  if (incoming_byte || last_incoming_byte)
+  if (all_incoming_bits)
   {
 
     for(uint8_t row = 0; row<8; row++)
     {
-      key = keyboard_map_char[column][row];
-      if (key)
+      bit_selector = (1<<row);
+
+      // is a bit set in the incoming, or last incoming byte?
+      if (all_incoming_bits & bit_selector)
       {
-        bit_selector = (1<<row);
-        if (incoming_byte & bit_selector )
+
+        key = keyboard_map_char[column][row];
+        // is there an entry in the map for this column & row?
+        if (key)
         {
-          if ( !(  last_incoming_byte & bit_selector ) )
+          // is a key pressed that wasn't previously pressed?
+          if ( incoming_byte & bit_selector & ~last_incoming_byte )
           {
 #if DEBUG
-            Serial.println("-----------------------------------");
-            Serial.print("R/C [");
-            Serial.print(row);
-            Serial.print("/");
-            Serial.print(column);
-            Serial.println("]");
-            Serial.print("I/LI [");
-            Serial.print(incoming_byte,BIN);
-            Serial.println("/");
-            Serial.print(last_incoming_byte,BIN);
-            Serial.println("]");
-            Serial.print("  Pressing [");
-            Serial.print(keyboard_map_string[column][row]);
-            Serial.println("]");
+            debugReportPressedKey(column, row, incoming_byte, last_incoming_byte);
 #endif
             Keyboard.press(key);
             application_on = true;
             delay(50); // debounce
           }
-        }
-        else if ( last_incoming_byte & bit_selector )
-        {
+          // is a key released that was previously pressed?
+          else if ( last_incoming_byte & bit_selector & ~incoming_byte)
+          {
 #if DEBUG
-            Serial.println("-----------------------------------");
-            Serial.print("R/C [");
-            Serial.print(row);
-            Serial.print("/");
-            Serial.print(column);
-            Serial.println("]");
-            Serial.print("I/LI [");
-            Serial.print(incoming_byte,BIN);
-            Serial.println("/");
-            Serial.print(last_incoming_byte,BIN);
-            Serial.println("]");
-            Serial.print("  Releasing [");
-            Serial.print(keyboard_map_string[column][row]);
-            Serial.println("]");
+              debugReportReleasedKey(column, row, incoming_byte, last_incoming_byte);
 #endif
-            Keyboard.release(key);
-            application_on = false;
+              Keyboard.release(key);
+              application_on = false;
+          }
         }
       }
     }
@@ -460,4 +443,62 @@ SIGNAL(TIMER0_COMPA_vect)
 void keyboardLedsStatusReportCallback()
 {
   led_status_update = true;
+}
+
+void debugReportPressedKey(uint8_t column, uint8_t row, uint8_t incoming_byte, uint8_t last_incoming_byte)
+{
+  Serial.println("-----------------------------------");
+  Serial.print("Row/Column [");
+  Serial.print(row);
+  Serial.print("/");
+  Serial.print(column);
+  Serial.println("]");
+  Serial.println("Last Incoming/Incoming bits [");
+  printByteAsBinary(last_incoming_byte,8);
+  Serial.println("/");
+  printByteAsBinary(incoming_byte,8);
+  Serial.println("]");
+  Serial.print("  Pressing [");
+  Serial.print(keyboard_map_string[column][row]);
+  Serial.println("]");
+}
+
+void debugReportReleasedKey(uint8_t column, uint8_t row, uint8_t incoming_byte, uint8_t last_incoming_byte)
+{
+  Serial.println("-----------------------------------");
+  Serial.print("Row/Column [");
+  Serial.print(row);
+  Serial.print("/");
+  Serial.print(column);
+  Serial.println("]");
+  Serial.println("Last Incoming/Incoming bits [");
+  printByteAsBinary(last_incoming_byte,8);
+  Serial.println("/");
+  printByteAsBinary(incoming_byte,8);
+  Serial.println("]");
+  Serial.print("  Releasing [");
+  Serial.print(keyboard_map_string[column][row]);
+  Serial.println("]");
+}
+
+void printByteAsBinary(uint8_t number, uint8_t bits)
+{
+  uint8_t bit_index;
+
+  bits = (bits>8)?8:bits;
+
+  if (bits == 0)
+  {
+    return;
+  }
+  
+  if (bits == 8)
+  {
+    Serial.println("  76543210");
+    Serial.print("0b");
+  }
+
+  bit_index=1<<(bits-1);
+  Serial.print((number & bit_index) ? '1' : '0');
+  printByteAsBinary(number,bits-1);
 }
