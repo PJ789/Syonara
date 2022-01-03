@@ -31,12 +31,49 @@ A 74hc165 shift register is used to read the rows of the matrix, and convert int
 
 ### Circuit 2: Caps Lock, Num Lock, Scroll Lock, and Application LEDs circuit
 
-A simple LED current limiting circuit for the LED indicators. Arduino pin high/low switching is used to turn the LEDs on/off as keyboard LED status is changed.
+A simple Neopixel strip replaces the original LEDs. A piece of insulating tape under the LEDs avoids shorts.
 
 ### Circuit 3: Keyboard RGB back light circuit
 
 A simple amplifier circuit to drive the keyboard RGB backlight using transistors or MOSFETs. PWM is used to control brightness of each RGB line, allowing colour transition effects.
 
+## MCU Pinouts
+
+Shift register control;
+
+ - Shift/load pin 2
+ - Clock pin 3
+ - Serial data pin 6
+
+Backlight PWM Control;
+ - Red (PWM) pin 9
+ - Green (PWM) pin 10
+ - Blue (PWM) pin 11
+
+Decade counter control;
+
+ - Counter 1 
+   - Reset pin A1
+   - Clock pin A2
+ 
+ - Counter 2
+   - Reset pin 15
+   - Clock pin 16
+
+Caps Lock, Num Lock, Scroll Lock Status LEDs;
+
+ - Neopixel pin A0
+   - Caps lock led: 0 
+   - Unused led: 1 
+   - Num lock led: 2
+   - Unused led: 3
+   - Scroll lock led: 4 
+   - Unused led: 5 
+   - Application led: 6 
+   - Unused led: 7 
+   - Power led: 8 
+
 ## Improvements?
 
-You could perhaps use a serial to parallel IC to drive the caps lock, num lock, scroll lock LEDs from a single pin on the Arduino. Or add a brightness control to the backlight circuit, perhaps using an analog input. 
+Add a brightness control to the backlight circuit, perhaps using an analog input. Support for standard LED colour setting protocols.
+
