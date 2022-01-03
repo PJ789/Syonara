@@ -5,7 +5,7 @@ This firmware is designed for an SS Micro Arduino MCU board (based on the ATMega
 
 The firmware suppports all keys, single zone RGB backlighting, Caps/Num/Shift lock LED functions.
 
-It assumes the complete replacement of the original MCU with an SS Micro, a keyboard scanning circuit using two 4017 decade counters to scan the 20 matrix columns in tandem, and a 75HC165 shift register providing parallel to serial output from the matrix rows.
+It assumes the complete replacement of the original MCU with an SS Micro, a keyboard scanning circuit using two 4017 decade counters to scan the 20 matrix columns in tandem,  a 75HC165 shift register providing parallel to serial output from the matrix rows, a strip of WS2812 Neopixels to replace the original keyboard status LEDs, and a PWM amplifier circuit to power the RGB backlights.
 
 ## Dependencieis
 
