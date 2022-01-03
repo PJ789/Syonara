@@ -93,7 +93,7 @@ Caps Lock, Num Lock, Scroll Lock Status LEDs;
 ## Circuit Diagram
 
 See https://raw.githubusercontent.com/PJ789/Syonara/main/Sayonara%20Circuit%20Diagram.png  
-![Sayonara Circuit Diagram](Sayonara%20Circuit%20Diagram.png)
+![Sayonara Circuit Diagram](Syonara%20Circuit%20Diagram.png)
 
 ## Improvements?
 
