@@ -33,7 +33,7 @@ The shift register output is read & decoded by the Syonara firmware. (An algorit
 
 ### Circuit 2: Caps Lock, Num Lock, Scroll Lock, and Application LEDs circuit
 
-A simple Neopixel strip replaces the original LEDs. A piece of insulating tape under the LEDs avoids shorts.
+A simple 9 Neopixel strip (taken from a 144 pixels/meter strip) replaces the original LEDs. A piece of insulating tape under the LEDs avoids shorts.
 
 The Syonara firmware sets the correspondng LED colours for each status indication.
 
