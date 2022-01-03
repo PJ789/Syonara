@@ -239,21 +239,20 @@ void increment_decade_counter(int clock_pin )
 uint8_t read_shift_register(int other_counter_clock_pin)
 {
   // Get data from 74HC165
-  uint8_t incoming1 = 0;
-  uint8_t incoming2 = 0;
-  uint8_t initial   = 0;
+  uint8_t incoming = 0;
+  uint8_t initial  = 0;
 
   do
   {
     // read the value from the rows
-    incoming1 = read_shift_register2();
+    incoming = read_shift_register2();
 
-    if (!incoming1)
+    if (!incoming)
     {
       return 0;
     }
    
-    initial   = incoming1;
+    initial   = incoming;
 
     // =========================================
     // now scan across the other 9 columns of the other decade counter
@@ -263,17 +262,16 @@ uint8_t read_shift_register(int other_counter_clock_pin)
     increment_decade_counter( other_counter_clock_pin );
     for( uint8_t i=0; i<9; i++)
     {
-      if (incoming1)
+      if (incoming)
       {
-        incoming2 = read_shift_register2();
-        incoming1 = incoming1 & incoming2;
+        incoming = incoming & read_shift_register2();
       }
       increment_decade_counter( other_counter_clock_pin );
     }
     // Has the shift register changed value while we've been scanning? if so, try again
   } while(initial != read_shift_register2());
 
-  return incoming1;
+  return incoming;
 }
 
 void decode( uint8_t column, uint8_t incoming_byte)
