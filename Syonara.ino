@@ -149,7 +149,7 @@ Serial.println("Running");
   pinMode(      BLUE_PIN,            OUTPUT);
   digitalWrite( BLUE_PIN,            LOW);
 
-  for( int column=0; column<20; column++)
+  for( uint8_t column=0; column<20; column++)
   {
     last_incoming[column]=0;
   }
@@ -171,14 +171,14 @@ void loop() {
  
   key_press_detected = false;
 
-  for (int i = 0; i <10; i++)
+  for (uint8_t i = 0; i <10; i++)
   {
     incoming1 = read_shift_register( COUNTER_2_CLOCK_PIN);
     decode( i,    incoming1 );
     incoming2 = read_shift_register( COUNTER_1_CLOCK_PIN);
     decode( i+10, incoming2 );
 
-    key_press_detected = (incoming1||incoming2)?true:key_press_detected;
+    key_press_detected = incoming1||incoming2||key_press_detected;
     
     increment_decade_counters();
   }
@@ -204,7 +204,7 @@ void reset_counters()
 {
     digitalWrite(COUNTER_1_RESET_PIN , HIGH);
     digitalWrite(COUNTER_2_RESET_PIN , HIGH);
-    delayMicroseconds(1);
+    __asm__("nop\n\t"); // 62.5ns delay
     digitalWrite(COUNTER_1_RESET_PIN , LOW);
     digitalWrite(COUNTER_2_RESET_PIN , LOW);
  
@@ -213,7 +213,7 @@ void reset_counters()
 void reset_counter( int reset_pin)
 {
     digitalWrite(reset_pin , HIGH);
-    delayMicroseconds(1);
+    __asm__("nop\n\t"); // 62.5ns delay
     digitalWrite(reset_pin , LOW);
  
 }
@@ -223,7 +223,7 @@ void increment_decade_counters( )
 
     digitalWrite(COUNTER_1_CLOCK_PIN , HIGH);
     digitalWrite(COUNTER_2_CLOCK_PIN , HIGH);
-    delayMicroseconds(1);
+    __asm__("nop\n\t"); // 62.5ns delay
     digitalWrite(COUNTER_1_CLOCK_PIN , LOW);
     digitalWrite(COUNTER_2_CLOCK_PIN , LOW);
 
@@ -232,7 +232,7 @@ void increment_decade_counters( )
 void increment_decade_counter(int clock_pin )
 {
     digitalWrite(clock_pin, HIGH);
-    delayMicroseconds(1);
+    __asm__("nop\n\t"); // 62.5ns delay
     digitalWrite(clock_pin, LOW);
 
 }
@@ -262,7 +262,7 @@ uint8_t read_shift_register(int other_counter_clock_pin)
   {
     mismatch=false;
     increment_decade_counter( other_counter_clock_pin );
-    for( int i=0; i<9; i++)
+    for( uint8_t i=0; i<9; i++)
     {
       if (incoming1)
       {
@@ -282,7 +282,7 @@ uint8_t read_shift_register(int other_counter_clock_pin)
   return incoming1;
 }
 
-void decode( int column, uint8_t incoming_byte)
+void decode( uint8_t column, uint8_t incoming_byte)
 {
   char key;
   uint8_t bit_selector;
@@ -294,7 +294,7 @@ void decode( int column, uint8_t incoming_byte)
   if (incoming_byte || last_incoming_byte)
   {
 
-    for(int row = 0; row<8; row++)
+    for(uint8_t row = 0; row<8; row++)
     {
       key = keyboard_map_char[column][row];
       if (key)
@@ -358,7 +358,7 @@ uint8_t read_shift_register2()
   // Enable shifting
   digitalWrite(CLOCK_PIN, HIGH);
   digitalWrite(SHIFT_OR_LOAD_PIN, HIGH);
-  delayMicroseconds(1);
+  __asm__("nop\n\t"); // 62.5ns delay
 
   // Get data from 74HC165
   uint8_t incoming = 0;
