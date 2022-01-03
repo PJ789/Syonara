@@ -16,16 +16,7 @@
  -  8x  10K ohm 0.25w resistors acting as pull down resistors on the 8 shift register inputs
 
 ## Circuit 2: Caps Lock, Num Lock, Scroll Lock, and Application LEDs circuit
- -  4x  ultra bright LEDs, any colour (recommend red, blue, green, yellow)
-
- _Either_
- -  4x  270 ohm 0.25w resistors acting as current limiting resistors to LEDs
-
- _or_
- -  1x  330 ohm DIP exclusion Network Resistor array 9pin acting as current limiting resistors to LEDs
-
- _Option: use fifth LED as power indicator_
- -  1x  ultra bright LEDs, any colour (recommend white) connected to 5v via current limiting resistor (as above)
+ -  9x WS2812 Neopixel LEDs in a strip
 
 ## Circuit 3: Keyboard RGB back light circuit;
  -  1x  prototype board, to install under keypad
