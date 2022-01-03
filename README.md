@@ -7,6 +7,15 @@ The firmware suppports all keys, single zone RGB backlighting, Caps/Num/Shift lo
 
 It assumes the complete replacement of the original MCU with an SS Micro, a keyboard scanning circuit using two 4017 decade counters to scan the 20 matrix columns in tandem,  a 75HC165 shift register providing parallel to serial output from the matrix rows, a strip of WS2812 Neopixels to replace the original keyboard status LEDs, and a PWM amplifier circuit to power the RGB backlights.
 
+## Motivation - Why do this to a working keyboard?
+
+ - Open source hardware gives you _complete_ control over the function of your keyboard
+ - Better security; you have access to all the source
+ - Better performance; nanosecond level keypress detection & signalling
+ - Better functionality; add custom keyboard functions, perhaps for gaming or application use, without using proprietary bloatware drivers
+ - Eliminates Razer original bloatware and unnecessary keyboard 'drivers'
+ - Adapt the scroll lock key to do something useful :)
+
 ## Dependencieis
 
 HID keyboard functionality is implemented using the Arduino Keyboard library, with the following patches applied;-
