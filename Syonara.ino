@@ -21,22 +21,28 @@
 
 #include "Keyboard.h"
 #include "Keyboard_da_DK.h"
+#include <Adafruit_NeoPixel.h>
 
 #define DEBUG                     0
 
-#define APPLICATION_LED           0
-#define NUM_LOCK_LED              1
 #define SHIFT_OR_LOAD_PIN         2
 #define CLOCK_PIN                 3
 #define SERIAL_PIN                6
 #define RED_PIN                   9
 #define GREEN_PIN                10
 #define BLUE_PIN                 11
-#define CAPS_LOCK_LED            14
 #define COUNTER_2_RESET_PIN      15
 #define COUNTER_2_CLOCK_PIN      16
 
-#define SCROLL_LOCK_LED          A0
+#define NEOPIXEL_PIN             A0
+#define CAPS_LOCK_LED             0
+#define NUM_LOCK_LED              2
+#define SCROLL_LOCK_LED           4
+#define APPLICATION_LED           6
+#define POWER_LED                 8
+
+Adafruit_NeoPixel keyboard_status_leds(POWER_LED+1, NEOPIXEL_PIN, NEO_GRB + NEO_KHZ800);
+
 #define COUNTER_1_RESET_PIN      A1
 #define COUNTER_1_CLOCK_PIN      A2
 
@@ -102,6 +108,8 @@ volatile bool led_status_update = true;
 bool caps_lock_on      = false;
 bool scroll_lock_on    = false;
 bool num_lock_on       = false;
+bool application_on    = false;
+bool power_on          = true;
 
 void setup() {
 #if DEBUG
@@ -141,21 +149,15 @@ Serial.println("Running");
   pinMode(      BLUE_PIN,            OUTPUT);
   digitalWrite( BLUE_PIN,            LOW);
 
-  pinMode(      APPLICATION_LED,     OUTPUT);
-  digitalWrite( APPLICATION_LED,     LOW);
-  pinMode(      CAPS_LOCK_LED,       OUTPUT);
-  digitalWrite( CAPS_LOCK_LED,       LOW);
-  pinMode(      SCROLL_LOCK_LED,     OUTPUT);
-  digitalWrite( SCROLL_LOCK_LED,     LOW);
-  pinMode(      NUM_LOCK_LED,        OUTPUT);
-  digitalWrite( NUM_LOCK_LED,        LOW);
-
   for( int column=0; column<20; column++)
   {
     last_incoming[column]=0;
   }
 
   reset_counters();
+  
+  keyboard_status_leds.begin();
+  keyboard_status_leds.setBrightness(100); // (max = 255)
 
   Keyboard.begin(KeyboardLayout_da_DK);
 
@@ -205,7 +207,7 @@ void reset_counters()
     delayMicroseconds(1);
     digitalWrite(COUNTER_1_RESET_PIN , LOW);
     digitalWrite(COUNTER_2_RESET_PIN , LOW);
-  
+ 
 }
 
 void reset_counter( int reset_pin)
@@ -213,7 +215,7 @@ void reset_counter( int reset_pin)
     digitalWrite(reset_pin , HIGH);
     delayMicroseconds(1);
     digitalWrite(reset_pin , LOW);
-  
+ 
 }
 
 void increment_decade_counters( )
@@ -224,7 +226,7 @@ void increment_decade_counters( )
     delayMicroseconds(1);
     digitalWrite(COUNTER_1_CLOCK_PIN , LOW);
     digitalWrite(COUNTER_2_CLOCK_PIN , LOW);
-  
+
 }
 
 void increment_decade_counter(int clock_pin )
@@ -232,7 +234,7 @@ void increment_decade_counter(int clock_pin )
     digitalWrite(clock_pin, HIGH);
     delayMicroseconds(1);
     digitalWrite(clock_pin, LOW);
-  
+
 }
 uint8_t read_shift_register(int other_counter_clock_pin)
 {
@@ -240,6 +242,7 @@ uint8_t read_shift_register(int other_counter_clock_pin)
   uint8_t incoming1 = 0;
   uint8_t incoming2 = 0;
   uint8_t initial   = 0;
+  bool    mismatch  = false;
 
   // read the value from the rows
   incoming1 = read_shift_register2();
@@ -255,22 +258,26 @@ uint8_t read_shift_register(int other_counter_clock_pin)
   // =========================================
   // now scan across the other 9 columns of the other decade counter
   // to eliminate false key presses
-
-  increment_decade_counter( other_counter_clock_pin );
-  for( int i=0; i<9; i++)
+  do
   {
-    if (incoming1)
-    {
-      incoming2 = read_shift_register2();
-      incoming1 = incoming1 & incoming2;
-    }
+    mismatch=false;
     increment_decade_counter( other_counter_clock_pin );
-  }
-
-  if (initial != read_shift_register2())
-  {
-    return 0;
-  }
+    for( int i=0; i<9; i++)
+    {
+      if (incoming1)
+      {
+        incoming2 = read_shift_register2();
+        incoming1 = incoming1 & incoming2;
+      }
+      increment_decade_counter( other_counter_clock_pin );
+    }
+    // Has the shift register changed value while we've been scanning? if so, try again
+    if (initial != read_shift_register2())
+    {
+      mismatch = true;
+      initial  = read_shift_register2();
+    }
+  } while(mismatch);
 
   return incoming1;
 }
@@ -298,24 +305,46 @@ void decode( int column, uint8_t incoming_byte)
           if ( !(  last_incoming_byte & bit_selector ) )
           {
 #if DEBUG
+            Serial.println("-----------------------------------");
             Serial.print("R/C [");
             Serial.print(row);
             Serial.print("/");
             Serial.print(column);
+            Serial.println("]");
+            Serial.print("I/LI [");
+            Serial.print(incoming_byte,BIN);
+            Serial.println("/");
+            Serial.print(last_incoming_byte,BIN);
             Serial.println("]");
             Serial.print("  Pressing [");
             Serial.print(keyboard_map_string[column][row]);
             Serial.println("]");
 #endif
             Keyboard.press(key);
-            digitalWrite(APPLICATION_LED, HIGH);
+            application_on = true;
             delay(50); // debounce
           }
         }
         else if ( last_incoming_byte & bit_selector )
         {
-          Keyboard.release(key);
-          digitalWrite(APPLICATION_LED, LOW);
+#if DEBUG
+            Serial.println("-----------------------------------");
+            Serial.print("R/C [");
+            Serial.print(row);
+            Serial.print("/");
+            Serial.print(column);
+            Serial.println("]");
+            Serial.print("I/LI [");
+            Serial.print(incoming_byte,BIN);
+            Serial.println("/");
+            Serial.print(last_incoming_byte,BIN);
+            Serial.println("]");
+            Serial.print("  Releasing [");
+            Serial.print(keyboard_map_string[column][row]);
+            Serial.println("]");
+#endif
+            Keyboard.release(key);
+            application_on = false;
         }
       }
     }
@@ -330,7 +359,7 @@ uint8_t read_shift_register2()
   digitalWrite(CLOCK_PIN, HIGH);
   digitalWrite(SHIFT_OR_LOAD_PIN, HIGH);
   delayMicroseconds(1);
- 
+
   // Get data from 74HC165
   uint8_t incoming = 0;
   
@@ -338,7 +367,7 @@ uint8_t read_shift_register2()
   
   // Enable loading
   digitalWrite(SHIFT_OR_LOAD_PIN, LOW);
-  
+
   return incoming;
 }
 
@@ -348,17 +377,7 @@ SIGNAL(TIMER0_COMPA_vect)
 {
   int r,g,b;
 
-  if (led_status_update)
-  {
-    caps_lock_on   = Keyboard.getLedStatus(LED_CAPS_LOCK);
-    scroll_lock_on = Keyboard.getLedStatus(LED_SCROLL_LOCK);
-    num_lock_on    = Keyboard.getLedStatus(LED_NUM_LOCK);
-    digitalWrite(CAPS_LOCK_LED,   (caps_lock_on)?   HIGH : LOW);
-    digitalWrite(SCROLL_LOCK_LED, (scroll_lock_on)? HIGH : LOW);
-    digitalWrite(NUM_LOCK_LED,    (num_lock_on)?    HIGH : LOW);
-    led_status_update = false;
-  }
-
+  // spread led update workload over 32x1ms timeslots to avoid spikes every millisecond
   switch( (millis() & 0b00011111) )
   {
     case 0b00000000:  // red
@@ -382,7 +401,7 @@ SIGNAL(TIMER0_COMPA_vect)
         }
       }
       break;
-    case 0b00001010: // green
+    case 0b00001000: // green
      if (key_down||scroll_lock_on)
       {
         analogWrite(GREEN_PIN,255 );
@@ -405,7 +424,7 @@ SIGNAL(TIMER0_COMPA_vect)
         }
       }
       break;
-    case 0b00010100:
+    case 0b00010000:
       if (key_down||num_lock_on)
       {
         analogWrite(BLUE_PIN, 255 );
@@ -427,6 +446,21 @@ SIGNAL(TIMER0_COMPA_vect)
             break;
         }
       }
+      break;
+    case 0b00011000:
+      if (led_status_update)
+      {
+        caps_lock_on   = Keyboard.getLedStatus(LED_CAPS_LOCK);
+        scroll_lock_on = Keyboard.getLedStatus(LED_SCROLL_LOCK);
+        num_lock_on    = Keyboard.getLedStatus(LED_NUM_LOCK);
+        keyboard_status_leds.setPixelColor(CAPS_LOCK_LED,   keyboard_status_leds.Color((caps_lock_on)?255:0,   0,                       0));
+        keyboard_status_leds.setPixelColor(SCROLL_LOCK_LED, keyboard_status_leds.Color(0,                      (scroll_lock_on)?255:0,  0));
+        keyboard_status_leds.setPixelColor(NUM_LOCK_LED,    keyboard_status_leds.Color(0,                      0,                       (num_lock_on)?255:0));
+        led_status_update = false;
+      }
+      keyboard_status_leds.setPixelColor(APPLICATION_LED, keyboard_status_leds.Color((application_on)?255:0, (application_on)?255:0, 0));
+      keyboard_status_leds.setPixelColor(POWER_LED,       keyboard_status_leds.Color((power_on)?255:0,       (power_on)?255:0,       (power_on)?255:0));
+      keyboard_status_leds.show();
       break;
   }
 } 
