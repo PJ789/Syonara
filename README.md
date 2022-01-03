@@ -27,15 +27,21 @@ The code assumes three circuits are assembled:
 
 Two 4017 decade counters are used to iterate over the 20 keyboard matrix columns in tandem.
 
-A 74hc165 shift register is used to read the rows of the matrix, and convert into a serialized byte value, which is read & decoded by firmware. (An algorithm in the firmware ensures that there is no misread due to two columns being scanned at the same time).
+A 74hc165 shift register is used to read the rows of the matrix, and convert into a serialized byte value.
+
+The shift register output is read & decoded by the Syonara firmware. (An algorithm in the firmware ensures that there is no misread due to two columns being scanned at the same time).
 
 ### Circuit 2: Caps Lock, Num Lock, Scroll Lock, and Application LEDs circuit
 
 A simple Neopixel strip replaces the original LEDs. A piece of insulating tape under the LEDs avoids shorts.
 
+The Syonara firmware sets the correspondng LED colours for each status indication.
+
 ### Circuit 3: Keyboard RGB back light circuit
 
 A simple amplifier circuit to drive the keyboard RGB backlight using transistors or MOSFETs. PWM is used to control brightness of each RGB line, allowing colour transition effects.
+
+The Syonara firmware uses PWM to create RGB colour transition effects.
 
 ## MCU Pinouts
 
