@@ -10,10 +10,10 @@
  -  1x  74hc165 shift registers
  -  20x 1N4148 signal diodes to protect outputs from decade counters
  -  8x  1N4148 signal diodes to protect inputs to shift register (recommended)
- -  1x  10K ohm DIP exclusion Network Resistor array 9pin acting as pull down resistors on the 8 shift register inputs
+ -  1x  9 pin 47K ohm DIP exclusion Network Resistor array acting as pull down resistors on the 8 shift register inputs
 
  _or replace last item with_
- -  8x  10K ohm 0.25w resistors acting as pull down resistors on the 8 shift register inputs
+ -  8x  47K ohm 0.25w resistors acting as pull down resistors on the 8 shift register inputs
 
 ## Circuit 2: Caps Lock, Num Lock, Scroll Lock, and Application LEDs circuit
  -  9x WS2812 Neopixel LEDs from a 144 pixels/meter strip, stuck where the original LEDs are situated
