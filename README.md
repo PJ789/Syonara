@@ -79,6 +79,11 @@ Caps Lock, Num Lock, Scroll Lock Status LEDs;
    - Unused led: 7 
    - Power led: 8 
 
+## Circuit Diagram
+
+See https://raw.githubusercontent.com/PJ789/Syonara/main/Sayonara%20Circuit%20Diagram.png
+![Sayonara Circuit Diagram](main/Sayonara%20Circuit%20Diagram.png)
+
 ## Improvements?
 
 Add a brightness control to the backlight circuit, perhaps using an analog input. Support for standard LED colour setting protocols.
