@@ -16,7 +16,17 @@ It assumes the complete replacement of the original MCU with an SS Micro, a keyb
  - Eliminates Razer's original bloatware and unnecessary keyboard 'drivers'
  - Adapt the scroll lock key to do something useful :)
 
-## Dependencieis
+## Features
+
+ - Full keyboard function
+ - Very low latency operation
+ - Backlight colour change effects
+ - Backlight displays to red/blue/green when caps lock/num lock/scroll lock are enabled
+ - Keyboard status LEDs are replaced by Neopixels
+ - Keyboard flickers when keys are pressed to confirm activation
+ - LED indicates when keystrokes are being sent
+
+## Dependencies
 
 HID keyboard functionality is implemented using the Arduino Keyboard library, with the following patches applied;-
 
