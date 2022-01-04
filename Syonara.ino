@@ -41,7 +41,8 @@
 #define APPLICATION_LED           6
 #define POWER_LED                 8
 
-Adafruit_NeoPixel keyboard_status_leds(POWER_LED+1, NEOPIXEL_PIN, NEO_GRB + NEO_KHZ800);
+#define NUM_LEDS                  9
+Adafruit_NeoPixel keyboard_status_leds(NUM_LEDS, NEOPIXEL_PIN, NEO_GRB + NEO_KHZ800);
 
 #define COUNTER_1_RESET_PIN      A1
 #define COUNTER_1_CLOCK_PIN      A2
@@ -100,7 +101,6 @@ const char keyboard_map_char[20][8] =
 bool    key_press_detected;
 uint8_t incoming1, incoming2;
 uint8_t last_incoming[20];
-
 
 int effect = 1;
 bool key_down          = false;
@@ -168,7 +168,7 @@ Serial.println("Running");
 
 
 void loop() {
- 
+
   key_press_detected = false;
 
   for (uint8_t column = 0; column <10; column++)
