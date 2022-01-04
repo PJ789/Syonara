@@ -202,38 +202,37 @@ void loop() {
 
 void reset_counters()
 {
-    digitalWrite(COUNTER_1_RESET_PIN , HIGH);
-    digitalWrite(COUNTER_2_RESET_PIN , HIGH);
-    __asm__("nop\n\t"); // 62.5ns delay
-    digitalWrite(COUNTER_1_RESET_PIN , LOW);
-    digitalWrite(COUNTER_2_RESET_PIN , LOW);
+  digitalWrite(COUNTER_1_RESET_PIN , HIGH);
+  digitalWrite(COUNTER_2_RESET_PIN , HIGH);
+  __asm__("nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t"); // 312.5ns: min reset pulse width is <260ns
+  digitalWrite(COUNTER_1_RESET_PIN , LOW);
+  digitalWrite(COUNTER_2_RESET_PIN , LOW);
  
 }
 
 void reset_counter( int reset_pin)
 {
-    digitalWrite(reset_pin , HIGH);
-    __asm__("nop\n\t"); // 62.5ns delay
-    digitalWrite(reset_pin , LOW);
+  digitalWrite(reset_pin , HIGH);
+  __asm__("nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t"); // 312.5ns: min reset pulse width is <260ns
+  digitalWrite(reset_pin , LOW);
  
 }
 
 void increment_decade_counters( )
 {
-
-    digitalWrite(COUNTER_1_CLOCK_PIN , HIGH);
-    digitalWrite(COUNTER_2_CLOCK_PIN , HIGH);
-    __asm__("nop\n\t"); // 62.5ns delay
-    digitalWrite(COUNTER_1_CLOCK_PIN , LOW);
-    digitalWrite(COUNTER_2_CLOCK_PIN , LOW);
+  digitalWrite(COUNTER_1_CLOCK_PIN , HIGH);
+  digitalWrite(COUNTER_2_CLOCK_PIN , HIGH);
+  __asm__("nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" ); // 250.0ns: min clock pulse width is <200ns
+  digitalWrite(COUNTER_1_CLOCK_PIN , LOW);
+  digitalWrite(COUNTER_2_CLOCK_PIN , LOW);
 
 }
 
 void increment_decade_counter(int clock_pin )
 {
-    digitalWrite(clock_pin, HIGH);
-    __asm__("nop\n\t"); // 62.5ns delay
-    digitalWrite(clock_pin, LOW);
+  digitalWrite(clock_pin, HIGH);
+  __asm__("nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" ); // 250.0ns: min clock pulse width is <200ns
+  digitalWrite(clock_pin, LOW);
 
 }
 uint8_t read_shift_register(int other_counter_clock_pin)
@@ -245,7 +244,7 @@ uint8_t read_shift_register(int other_counter_clock_pin)
   do
   {
     // read the value from the rows
-    incoming = read_shift_register2();
+    incoming = read_shift_register_low_level();
 
     if (!incoming)
     {
@@ -260,16 +259,16 @@ uint8_t read_shift_register(int other_counter_clock_pin)
     // Is any keypress detected on this decade counter column?
 
     increment_decade_counter( other_counter_clock_pin );
-    for( uint8_t i=0; i<9; i++)
+    for( uint8_t column=0; column<9; column++)
     {
       if (incoming)
       {
-        incoming = incoming & read_shift_register2();
+        incoming = incoming & read_shift_register_low_level();
       }
       increment_decade_counter( other_counter_clock_pin );
     }
     // Has the shift register changed value while we've been scanning? if so, try again
-  } while(initial != read_shift_register2());
+  } while(initial != read_shift_register_low_level());
 
   return incoming;
 }
@@ -315,10 +314,10 @@ void decode( uint8_t column, uint8_t incoming_byte)
           else if ( last_incoming_byte & bit_selector & ~incoming_byte)
           {
 #if DEBUG
-              debugReportReleasedKey(column, row, incoming_byte, last_incoming_byte);
+            debugReportReleasedKey(column, row, incoming_byte, last_incoming_byte);
 #endif
-              Keyboard.release(key);
-              application_on = false;
+            Keyboard.release(key);
+            application_on = false;
           }
         }
       }
@@ -327,11 +326,15 @@ void decode( uint8_t column, uint8_t incoming_byte)
   last_incoming[column]=incoming_byte;
 }
 
-uint8_t read_shift_register2()
+uint8_t read_shift_register_low_level()
 {
 
+  // Loading time
+  delayMicroseconds(1); // 1000ns: min input transition rise/fall time is <1000ns
+  
   // Enable shifting
   digitalWrite(CLOCK_PIN, HIGH);
+  __asm__("nop\n\t"); // 62.5ns delay
   digitalWrite(SHIFT_OR_LOAD_PIN, HIGH);
   __asm__("nop\n\t"); // 62.5ns delay
 
@@ -342,7 +345,7 @@ uint8_t read_shift_register2()
   
   // Enable loading
   digitalWrite(SHIFT_OR_LOAD_PIN, LOW);
-
+  
   return incoming;
 }
 
@@ -355,7 +358,7 @@ SIGNAL(TIMER0_COMPA_vect)
   // spread led update workload over 32x1ms timeslots to avoid spikes every millisecond
   switch( (millis() & 0b00011111) )
   {
-    case 0b00000000:  // red
+    case 0b00000000:  // process red pwm output
       if (key_down||caps_lock_on)
       {
         analogWrite(RED_PIN,255 );
@@ -376,7 +379,7 @@ SIGNAL(TIMER0_COMPA_vect)
         }
       }
       break;
-    case 0b00001000: // green
+    case 0b00001000: // process green pwm output
      if (key_down||scroll_lock_on)
       {
         analogWrite(GREEN_PIN,255 );
@@ -399,7 +402,7 @@ SIGNAL(TIMER0_COMPA_vect)
         }
       }
       break;
-    case 0b00010000:
+    case 0b00010000:  // process blue pwm output
       if (key_down||num_lock_on)
       {
         analogWrite(BLUE_PIN, 255 );
@@ -422,7 +425,7 @@ SIGNAL(TIMER0_COMPA_vect)
         }
       }
       break;
-    case 0b00011000:
+    case 0b00011000:  // process keyboard status LED output
       if (led_status_update)
       {
         caps_lock_on   = Keyboard.getLedStatus(LED_CAPS_LOCK);
