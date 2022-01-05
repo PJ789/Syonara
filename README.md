@@ -109,7 +109,7 @@ See [Sayonara Circuit Diagram](Syonara%20Circuit%20Diagram.png)
 
 ## Compiler Optimisation
 
-Enabling the Arduino GCC -O3 compiler optimisation gives a useful 10% boost to the kwyboard scan rate. To make this change, find platform.txt (see <install folder>\hardware\arduino\avr) and modify the following lines before uploading the sketch;-
+Enabling the Arduino GCC -O3 compiler optimisation gives a useful 10% boost to the keyboard scan rate. To make this change, find platform.txt (see <install folder>\hardware\arduino\avr) and modify the following lines before uploading the sketch;-
 
 > **compiler.c.flags**=-c -g **-O3** {compiler.warning_flags} -std=gnu11 -ffunction-sections -fdata-sections -MMD -flto -fno-fat-lto-objects  
 > **compiler.c.elf.flags**={compiler.warning_flags} **-O3** -g -flto -fuse-linker-plugin -Wl,--gc-sections  
