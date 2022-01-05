@@ -330,7 +330,7 @@ void decode( uint8_t column, uint8_t incoming_byte)
   {
     key = keyboard_map_char[column][row];
     // is a key pressed that wasn't previously pressed? note the deliberate assignment to application_led_on
-    if ( application_led_on = (all_pressed_bits & row_bit_selector))
+    if ((application_led_on = (all_pressed_bits & row_bit_selector)))
     {
 #if DEBUG
       debugReportPressedKey(column, row, incoming_byte, last_incoming_byte);
@@ -370,7 +370,7 @@ uint8_t read_shift_register_low_level()
   
   // Enable loading
   //digitalWrite(SHIFT_OR_LOAD_PIN, LOW);
-  PORTD &= !(1<<PD1);// pin2
+  PORTD &= ~(1<<PD1);// pin2
 
   return incoming;
 }
