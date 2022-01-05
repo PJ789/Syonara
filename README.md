@@ -19,7 +19,7 @@ It assumes the complete replacement of the original MCU circuit with an SS Micro
 ## Features
 
  - Full keyboard function
- - Very low latency operation (330Hz scan rate with -O3 compiler optimisation setting in debug, see notes below)
+ - Very low latency operation (330Hz scan rate with -O3 [compiler optimisation](README.md#compiler-optimisation) setting in debug, see notes below)
  - Backlight colour change effects
  - Backlight switches to red/blue/green to indicate prominently when caps lock/num lock/scroll lock are enabled
  - Keyboard status LEDs are replaced by Neopixels
@@ -111,9 +111,9 @@ See [Sayonara Circuit Diagram](Syonara%20Circuit%20Diagram.png)
 
 Enabling the Arduino GCC -O3 compiler optimisation gives a useful 10% boost to the kwyboard scan rate. To make this change, find platform.txt (see <install folder>\hardware\arduino\avr) and modify the following lines before uploading the sketch;-
 
-> compiler.c.flags=-c -g**-O3**{compiler.warning_flags} -std=gnu11 -ffunction-sections -fdata-sections -MMD -flto -fno-fat-lto-objects
-> compiler.c.elf.flags={compiler.warning_flags}**-O3*-g -flto -fuse-linker-plugin -Wl,--gc-sections
-> compiler.cpp.flags=-c -g**-O3**{compiler.warning_flags} -std=gnu++11 -fpermissive -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics -Wno-error=narrowing -MMD -flto
+> compiler.c.flags=-c -g **-O3** {compiler.warning_flags} -std=gnu11 -ffunction-sections -fdata-sections -MMD -flto -fno-fat-lto-objects
+> compiler.c.elf.flags={compiler.warning_flags} **-O3** -g -flto -fuse-linker-plugin -Wl,--gc-sections
+> compiler.cpp.flags=-c -g **-O3** {compiler.warning_flags} -std=gnu++11 -fpermissive -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics -Wno-error=narrowing -MMD -flto
 
 ## Design Improvements?
 
