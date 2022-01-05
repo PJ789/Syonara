@@ -113,3 +113,4 @@ See [Sayonara Circuit Diagram](Syonara%20Circuit%20Diagram.png)
 - Support for standard LED colour setting protocols.
 - The circuit design counts over 20 matrix columns, supplying power to each column via two decade counters, then reading the output on the 8 matrix rows as a byte. Because of the keyboard membrane design, this can create false key presses if two keys on the same row/different columns are pressed at the same time (causing power to be fed to a second column) AND another key is simultaneously pressed on either column. The likelihood of this happening is reasonably low; it could be avoided by better keyboard membrane design (requires a new keyboard membrane).
  - Replace the backlight circuit with _moar_ Neopixels
+ - In a perfect world, with hindsight, I would have put the decade counter clock pins on the same AVR port, so both could be set at once (saving ~62ns). 
