@@ -296,50 +296,43 @@ void decode( uint8_t column, uint8_t incoming_byte)
   char key;
   uint8_t row;
   uint8_t last_incoming_byte;
-  uint8_t all_incoming_bits;
+  uint8_t all_changed_bits, all_pressed_bits;
   uint8_t row_bit_selector;
    
   last_incoming_byte = last_incoming_bytes[column];
 
-  all_incoming_bits = incoming_byte | last_incoming_byte; 
+  // we're only interested in changed bits
+  all_changed_bits = incoming_byte ^ last_incoming_byte; 
 
   // is a key pressed, or might a key be released?
-  if (all_incoming_bits)
+  if (all_changed_bits)
   {
-    // ignore those rows where bit is not set
-    for(row=0,row_bit_selector = 1; !(row_bit_selector & all_incoming_bits); row++, row_bit_selector<<=1 );
+    all_pressed_bits = all_changed_bits & incoming_byte;
+    
+    // ignore those rows where changed bit is not set
+    for(row=0,row_bit_selector = 1; !(row_bit_selector & all_changed_bits); row++, row_bit_selector<<=1 );
 
-    // decode rows from first to last bit set, stops when row_bit_selector is shifted to zero
-    for(; row_bit_selector && (row_bit_selector<=all_incoming_bits); row++, row_bit_selector<<=1 )
+    // decode changed rows from first to last bit set, stops when row_bit_selector is shifted to zero
+    for(; row_bit_selector && (row_bit_selector<=all_changed_bits); row++, row_bit_selector<<=1 )
     {
-      // is a key pressed that wasn't previously pressed?
-      if ( incoming_byte & row_bit_selector & ~last_incoming_byte )
+      key = keyboard_map_char[column][row];
+      // is a key pressed that wasn't previously pressed? note the deliberate assignment to application_led_on
+      if ( application_led_on = (all_pressed_bits & row_bit_selector))
       {
 #if DEBUG
         debugReportPressedKey(column, row, incoming_byte, last_incoming_byte);
 #endif
-        key = keyboard_map_char[column][row];
-        // is there an entry in the map for this column & row?
-        if (key)
-        {
-          Keyboard.press(key);
-          application_led_on = true;
-          delay(50); // debounce
-        }
+        Keyboard.press(key);
+        delay(50); // debounce
       }
-      // is a key released that was previously pressed?
-      else if ( last_incoming_byte & row_bit_selector & ~incoming_byte)
+      // a key released that was previously pressed has been released
+      else 
       {
 #if DEBUG
         debugReportReleasedKey(column, row, incoming_byte, last_incoming_byte);
 #endif
-        key = keyboard_map_char[column][row];
         // is there an entry in the map for this column & row?
-        if (key)
-        {
-          Keyboard.release(key);
-          application_led_on = false;
-        }
+        Keyboard.release(key);
       }
     }
   }
