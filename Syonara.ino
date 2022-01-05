@@ -26,7 +26,7 @@
 #define MAX_COLUMNS              20
 #define MAX_ROWS                  8
 
-#define DEBUG                     0
+#define DEBUG                     1
 
 #define SHIFT_OR_LOAD_PIN         2
 #define CLOCK_PIN                 3
@@ -227,9 +227,9 @@ void reset_decade_counters()
   PORTB |= (1<<PB1);// pin15
   __asm__("nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t"); // 312.5ns: min reset pulse width is <260ns
 //  digitalWrite(COUNTER_1_RESET_PIN , LOW);
-  PORTF &= !(1<<PF6);// pinA1
+  PORTF &= ~(1<<PF6);// pinA1
 //  digitalWrite(COUNTER_2_RESET_PIN , LOW);
-  PORTB &= !(1<<PB1);// pin15
+  PORTB &= ~(1<<PB1);// pin15
  
 }
 
@@ -241,9 +241,9 @@ void increment_decade_counters( )
   PORTB |= (1<<PB2);// pin16
   __asm__("nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" ); // 250.0ns: min clock pulse width is <200ns
 //  digitalWrite(COUNTER_1_CLOCK_PIN , LOW);
-  PORTF &= !(1<<PF5);// pinA2
+  PORTF &= ~(1<<PF5);// pinA2
 //  digitalWrite(COUNTER_2_CLOCK_PIN , LOW);
-  PORTB &= !(1<<PB2);// pin16
+  PORTB &= ~(1<<PB2);// pin16
 
 }
 
@@ -253,7 +253,7 @@ void increment_decade_counter1()
   PORTF |= (1<<PF5);// pinA2
   __asm__("nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" ); // 250.0ns: min clock pulse width is <200ns
 //  digitalWrite(COUNTER_1_CLOCK_PIN, LOW);
-  PORTF &= !(1<<PF5);// pinA2
+  PORTF &= ~(1<<PF5);// pinA2
 
 }
 
@@ -263,7 +263,7 @@ void increment_decade_counter2()
   PORTB |= (1<<PB2);// pin16
   __asm__("nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" ); // 250.0ns: min clock pulse width is <200ns
 //  digitalWrite(COUNTER_2_CLOCK_PIN, LOW);
-  PORTB &= !(1<<PB2);// pin16
+  PORTB &= ~(1<<PB2);// pin16
 
 }
 uint8_t read_shift_register(void (*increment_decade_counter)(void))
@@ -277,12 +277,7 @@ uint8_t read_shift_register(void (*increment_decade_counter)(void))
   do
   {
     // read the value from the rows
-    incoming = read_shift_register_low_level();
-
-    if (!incoming)
-    {
-      return 0;
-    }
+    if (!(incoming = read_shift_register_low_level())) return 0;
    
     initial   = incoming;
 
@@ -360,7 +355,7 @@ uint8_t read_shift_register_low_level()
   static uint8_t incoming;
 
   // Loading time
-  __asm__("nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" ); // 500ns delay; min input transition rise/fall time @ 4.5V is <500ns
+  //  __asm__("nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" ); // 500ns delay; min input transition rise/fall time @ 4.5V is <500ns
   
   // Enable shifting
   //digitalWrite(CLOCK_PIN, HIGH);
@@ -389,15 +384,15 @@ SIGNAL(TIMER0_COMPA_vect)
   static uint8_t  leds;
   static uint32_t backlight_color;
   
-  // spread led update workload over 32x1ms timeslots to avoid spikes every millisecond
-  switch( (millis() & 0b00011111) )
+  // spread led update workload over 64x1ms timeslots to avoid spikes every millisecond
+  switch( (millis() & 0b00111111) )
   {
     case 0b00000000:  // process red pwm output
       switch(effect)
       {
         case 1:
         case 2:     
-          r = map((millis() % 10240),0,10240,-200,200);
+          r = map((millis() & 0b0011111111000000),0,0b0011111111000000,-200,200);
           r = 50+abs(r);
           r = keyboard_status_leds.gamma8(r);
           break;
@@ -415,11 +410,11 @@ SIGNAL(TIMER0_COMPA_vect)
         analogWrite(RED_PIN, r );
       }
       break;
-    case 0b00001000: // process green pwm output
+    case 0b00010000: // process green pwm output
       switch(effect)
       {
         case 1:
-          g = map((millis() % 12800),0,12800,-200,200);
+          g = map((millis() & 0b0001111111000000),0,0b0001111111000000,-200,200);
           g = 50+abs(g);
           g = keyboard_status_leds.gamma8(g);
           break;
@@ -440,11 +435,11 @@ SIGNAL(TIMER0_COMPA_vect)
         analogWrite(GREEN_PIN, g );
       }
       break;
-    case 0b00010000:  // process blue pwm output
+    case 0b00100000:  // process blue pwm output
       switch(effect) //blue
       {
         case 1:
-          b = map((millis() % 11264),0,11264,-200,200);
+          b = map((millis() & 0b0000111111000000),0,0b0000111111000000,-200,200);
           b = 50+abs(b);
           b = keyboard_status_leds.gamma8(b);
           break;
@@ -465,7 +460,7 @@ SIGNAL(TIMER0_COMPA_vect)
         analogWrite(BLUE_PIN,  b );
       }
       break;
-    case 0b00011000:  // process keyboard status LED Neopixel output
+    case 0b00110000:  // process keyboard status LED Neopixel output
       if (led_status_update)
       {
         caps_lock_on   = Keyboard.getLedStatus(LED_CAPS_LOCK);
