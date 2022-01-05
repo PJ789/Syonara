@@ -188,9 +188,9 @@ void loop() {
 
   for (column = 0; column < (MAX_COLUMNS/2); column++)
   {
-    incoming1 = read_shift_register( COUNTER_2_CLOCK_PIN);
+    incoming1 = read_shift_register( increment_decade_counter2 );
     decode( column,                 incoming1 );
-    incoming2 = read_shift_register( COUNTER_1_CLOCK_PIN);
+    incoming2 = read_shift_register( increment_decade_counter1 );
     decode( column+(MAX_COLUMNS/2), incoming2 );
 
     key_press_detected = incoming1||incoming2||key_press_detected;
@@ -217,40 +217,52 @@ void loop() {
 
 void reset_decade_counters()
 {
-  digitalWrite(COUNTER_1_RESET_PIN , HIGH);
-  digitalWrite(COUNTER_2_RESET_PIN , HIGH);
+//  digitalWrite(COUNTER_1_RESET_PIN , HIGH);
+  PORTF |= (1<<PF6);// pinA1
+//  digitalWrite(COUNTER_2_RESET_PIN , HIGH);
+  PORTB |= (1<<PB1);// pin15
   __asm__("nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t"); // 312.5ns: min reset pulse width is <260ns
-  digitalWrite(COUNTER_1_RESET_PIN , LOW);
-  digitalWrite(COUNTER_2_RESET_PIN , LOW);
- 
-}
-
-void reset_decade_counter( int reset_pin)
-{
-  digitalWrite(reset_pin , HIGH);
-  __asm__("nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t"); // 312.5ns: min reset pulse width is <260ns
-  digitalWrite(reset_pin , LOW);
+//  digitalWrite(COUNTER_1_RESET_PIN , LOW);
+  PORTF &= !(1<<PF6);// pinA1
+//  digitalWrite(COUNTER_2_RESET_PIN , LOW);
+  PORTB &= !(1<<PB1);// pin15
  
 }
 
 void increment_decade_counters( )
 {
-  digitalWrite(COUNTER_1_CLOCK_PIN , HIGH);
-  digitalWrite(COUNTER_2_CLOCK_PIN , HIGH);
+//  digitalWrite(COUNTER_1_CLOCK_PIN , HIGH);
+  PORTF |= (1<<PF5);// pinA2
+//  digitalWrite(COUNTER_2_CLOCK_PIN , HIGH);
+  PORTB |= (1<<PB2);// pin16
   __asm__("nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" ); // 250.0ns: min clock pulse width is <200ns
-  digitalWrite(COUNTER_1_CLOCK_PIN , LOW);
-  digitalWrite(COUNTER_2_CLOCK_PIN , LOW);
+//  digitalWrite(COUNTER_1_CLOCK_PIN , LOW);
+  PORTF &= !(1<<PF5);// pinA2
+//  digitalWrite(COUNTER_2_CLOCK_PIN , LOW);
+  PORTB &= !(1<<PB2);// pin16
 
 }
 
-void increment_decade_counter(int clock_pin )
+void increment_decade_counter1()
 {
-  digitalWrite(clock_pin, HIGH);
+//  digitalWrite(COUNTER_1_CLOCK_PIN, HIGH);
+  PORTF |= (1<<PF5);// pinA2
   __asm__("nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" ); // 250.0ns: min clock pulse width is <200ns
-  digitalWrite(clock_pin, LOW);
+//  digitalWrite(COUNTER_1_CLOCK_PIN, LOW);
+  PORTF &= !(1<<PF5);// pinA2
 
 }
-uint8_t read_shift_register(int other_counter_clock_pin)
+
+void increment_decade_counter2()
+{
+//  digitalWrite(COUNTER_2_CLOCK_PIN, HIGH);
+  PORTB |= (1<<PB2);// pin16
+  __asm__("nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" ); // 250.0ns: min clock pulse width is <200ns
+//  digitalWrite(COUNTER_2_CLOCK_PIN, LOW);
+  PORTB &= !(1<<PB2);// pin16
+
+}
+uint8_t read_shift_register(void (*increment_decade_counter)(void))
 {
   // static variables for better performance
   // Get data from 74HC165
@@ -275,17 +287,17 @@ uint8_t read_shift_register(int other_counter_clock_pin)
     // to eliminate false key presses
     // Is any keypress detected on this decade counter column?
 
-    increment_decade_counter( other_counter_clock_pin );
+    (*increment_decade_counter)();
 
     for( column=0; incoming && column<((MAX_COLUMNS/2)-1) ; column++)
     {
       incoming = incoming & read_shift_register_low_level();
-      increment_decade_counter( other_counter_clock_pin );
+      (*increment_decade_counter)();
     }
     // at this point incoming is true and column is 9, OR incoming is false and colum is <9, so resync counters
     for( ; column<((MAX_COLUMNS/2)-1) ; column++)
     {
-      increment_decade_counter( other_counter_clock_pin );
+      (*increment_decade_counter)();
     }
     // Has the shift register changed value while we've been scanning? if so, try again
   } while(initial != read_shift_register_low_level());
@@ -347,17 +359,20 @@ uint8_t read_shift_register_low_level()
   delayMicroseconds(1); // 1000ns: min input transition rise/fall time is <1000ns
   
   // Enable shifting
-  digitalWrite(CLOCK_PIN, HIGH);
+  //digitalWrite(CLOCK_PIN, HIGH);
+  PORTD |= (1<<PD0);// pin3
   __asm__("nop\n\t"); // 62.5ns delay
-  digitalWrite(SHIFT_OR_LOAD_PIN, HIGH);
+  //digitalWrite(SHIFT_OR_LOAD_PIN, HIGH);
+  PORTD |= (1<<PD1);// pin2
   __asm__("nop\n\t"); // 62.5ns delay
 
   // Get data from 74HC165
   incoming = shiftIn(SERIAL_PIN, CLOCK_PIN, MSBFIRST);
   
   // Enable loading
-  digitalWrite(SHIFT_OR_LOAD_PIN, LOW);
-  
+  //digitalWrite(SHIFT_OR_LOAD_PIN, LOW);
+  PORTD &= !(1<<PD1);// pin2
+
   return incoming;
 }
 
