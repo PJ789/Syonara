@@ -175,15 +175,19 @@ Serial.println("Running");
 
 }
 
-
+#if DEBUG
+long cycles = 0;
+long start  = millis();
+#endif
 void loop() {
   // static variables for better performance
   static bool    key_press_detected;
   static uint8_t incoming1;
   static uint8_t incoming2;
   static uint8_t column;
-
-
+#if DEBUG
+cycles++;
+#endif
   key_press_detected = false;
 
   for (column = 0; column < (MAX_COLUMNS/2); column++)
@@ -497,6 +501,7 @@ void keyboardLedsStatusReportCallback()
   led_status_update = true;
 }
 
+#if DEBUG
 void debugReportPressedKey(uint8_t column, uint8_t row, uint8_t incoming_byte, uint8_t last_incoming_byte)
 {
   Serial.println("-----------------------------------");
@@ -513,6 +518,9 @@ void debugReportPressedKey(uint8_t column, uint8_t row, uint8_t incoming_byte, u
   Serial.print("  Pressing [");
   Serial.print(keyboard_map_string[column][row]);
   Serial.println("]");
+  Serial.print("Estimated scan rate [");
+  Serial.println((((float)cycles)*1000.0)/((float)(millis()-start)));
+  Serial.println("hz]");
 }
 
 void debugReportReleasedKey(uint8_t column, uint8_t row, uint8_t incoming_byte, uint8_t last_incoming_byte)
@@ -527,10 +535,13 @@ void debugReportReleasedKey(uint8_t column, uint8_t row, uint8_t incoming_byte, 
   printByteAsBinary(last_incoming_byte,8);
   Serial.println("/");
   printByteAsBinary(incoming_byte,8);
-  Serial.println("]");
+  Serial.println("]"); 
   Serial.print("  Releasing [");
   Serial.print(keyboard_map_string[column][row]);
   Serial.println("]");
+  Serial.print("Estimated scan rate [");
+  Serial.println((((float)cycles)*1000.0)/((float)(millis()-start)));
+  Serial.println("hz]");
 }
 
 void printByteAsBinary(uint8_t number, uint8_t bits)
@@ -554,3 +565,4 @@ void printByteAsBinary(uint8_t number, uint8_t bits)
   Serial.print((number & bit_index) ? '1' : '0');
   printByteAsBinary(number,bits-1);
 }
+#endif
