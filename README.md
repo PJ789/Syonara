@@ -40,7 +40,7 @@ https://github.com/arduino-libraries/Keyboard/pull/61
 
 ## Electronics
 
-See also [Bill of Materials](https://github.com/PJ789/Syonara/blob/main/BOM.md)
+See also [Bill of Materials](BOM.md) and [Circuit Diagram](README.md#circuit-diagram)
 
 The code requires three circuits are assembled:
 
@@ -104,7 +104,7 @@ Caps Lock, Num Lock, Scroll Lock Status LEDs;
 
 ## Circuit Diagram
 
-See https://raw.githubusercontent.com/PJ789/Syonara/main/Syonara%20Circuit%20Diagram.png  
+See [Sayonara Circuit Diagram](Syonara%20Circuit%20Diagram.png)
 ![Sayonara Circuit Diagram](Syonara%20Circuit%20Diagram.png)
 
 ## Design Improvements?
