@@ -305,38 +305,35 @@ void decode( uint8_t column, uint8_t incoming_byte)
    
   last_incoming_byte = last_incoming_bytes[column];
 
+  if (incoming_byte==last_incoming_byte) return; // nothing to do, nothing pressed or released
+
   // we're only interested in changed bits
   all_changed_bits = incoming_byte ^ last_incoming_byte; 
+  all_pressed_bits = all_changed_bits & incoming_byte;
+  
+  // ignore those rows where changed bit is not set
+  for(row=0,row_bit_selector = 1; !(row_bit_selector & all_changed_bits); row++, row_bit_selector<<=1 );
 
-  // is a key pressed, or might a key be released?
-  if (all_changed_bits)
+  // decode changed rows from first to last bit set, stops when row_bit_selector is shifted to zero
+  for(; row_bit_selector && (row_bit_selector<=all_changed_bits); row++, row_bit_selector<<=1 )
   {
-    all_pressed_bits = all_changed_bits & incoming_byte;
-    
-    // ignore those rows where changed bit is not set
-    for(row=0,row_bit_selector = 1; !(row_bit_selector & all_changed_bits); row++, row_bit_selector<<=1 );
-
-    // decode changed rows from first to last bit set, stops when row_bit_selector is shifted to zero
-    for(; row_bit_selector && (row_bit_selector<=all_changed_bits); row++, row_bit_selector<<=1 )
+    key = keyboard_map_char[column][row];
+    // is a key pressed that wasn't previously pressed? note the deliberate assignment to application_led_on
+    if ( application_led_on = (all_pressed_bits & row_bit_selector))
     {
-      key = keyboard_map_char[column][row];
-      // is a key pressed that wasn't previously pressed? note the deliberate assignment to application_led_on
-      if ( application_led_on = (all_pressed_bits & row_bit_selector))
-      {
 #if DEBUG
-        debugReportPressedKey(column, row, incoming_byte, last_incoming_byte);
+      debugReportPressedKey(column, row, incoming_byte, last_incoming_byte);
 #endif
-        Keyboard.press(key);
-        delay(50); // debounce
-      }
-      // a key released that was previously pressed has been released
-      else 
-      {
+      Keyboard.press(key);
+      delay(50); // debounce
+    }
+    // a key released that was previously pressed has been released
+    else 
+    {
 #if DEBUG
-        debugReportReleasedKey(column, row, incoming_byte, last_incoming_byte);
+      debugReportReleasedKey(column, row, incoming_byte, last_incoming_byte);
 #endif
-        Keyboard.release(key);
-      }
+      Keyboard.release(key);
     }
   }
   last_incoming_bytes[column]=incoming_byte;
@@ -344,6 +341,7 @@ void decode( uint8_t column, uint8_t incoming_byte)
 
 uint8_t read_shift_register_low_level()
 {
+  static uint8_t incoming;
 
   // Loading time
   delayMicroseconds(1); // 1000ns: min input transition rise/fall time is <1000ns
@@ -355,8 +353,6 @@ uint8_t read_shift_register_low_level()
   __asm__("nop\n\t"); // 62.5ns delay
 
   // Get data from 74HC165
-  uint8_t incoming = 0;
-  
   incoming = shiftIn(SERIAL_PIN, CLOCK_PIN, MSBFIRST);
   
   // Enable loading
@@ -369,7 +365,7 @@ uint8_t read_shift_register_low_level()
 
 SIGNAL(TIMER0_COMPA_vect) 
 {
-  static int r,g,b;
+  static uint16_t r,g,b; // 16 bit ints, by design
 
   // spread led update workload over 32x1ms timeslots to avoid spikes every millisecond
   switch( (millis() & 0b00011111) )
