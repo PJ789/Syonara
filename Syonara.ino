@@ -51,16 +51,16 @@
 #define NUM_LEDS                  9
 Adafruit_NeoPixel keyboard_status_leds(NUM_LEDS, NEOPIXEL_PIN, NEO_GRB + NEO_KHZ800);
 enum NeoPixelColors {
-    Red = 0xFF0000,
-    Orange = 0xFFA500,
-    Yellow = 0xFFFF00,
-    Green = 0x00FF00,
-    Blue = 0x0000FF,
+    Red    = 0xff0000,
+    Orange = 0xffa500,
+    Yellow = 0xffff00,
+    Green  = 0x00ff00,
+    Blue   = 0x0000ff,
     Indigo = 0x4b0082,
     Violet = 0x8a2be2,
-    Purple = 0xFF00FF,
-    White = 0xFFFFFF,
-    Black = 0x000000
+    Purple = 0xff00ff,
+    White  = 0xffffff,
+    Black  = 0x000000
 };
 
 const char* keyboard_map_string[MAX_COLUMNS][MAX_ROWS] =
@@ -115,14 +115,14 @@ const char keyboard_map_char[MAX_COLUMNS][MAX_ROWS] =
 
 uint8_t last_incoming_bytes[MAX_COLUMNS];
 
-int effect = 1;
-bool key_down          = false;
+int effect                      = 1;
+bool key_down                   = false;
 volatile bool led_status_update = true;
-bool caps_lock_on      = false;
-bool scroll_lock_on    = false;
-bool num_lock_on       = false;
-bool application_led_on    = false;
-bool power_led_on          = true;
+bool caps_lock_on               = false;
+bool scroll_lock_on             = false;
+bool num_lock_on                = false;
+bool application_led_on         = false;
+bool power_led_on               = true;
 
 void setup() {
 #if DEBUG
@@ -133,7 +133,7 @@ Serial.println("Running");
 
   // Timer0 is already used for millis() - we'll just interrupt somewhere
   // in the middle and call the "Compare A" function below
-  OCR0A = 0xAF;
+  OCR0A  =  0xAF;
   TIMSK0 |= _BV(OCIE0A);
 
   
