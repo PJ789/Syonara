@@ -1,5 +1,5 @@
 # Syonara
-Arduino SS Micro (Leonardo) firmware for a Razer Cynosa Lite or similar single zone RGB keyboard.
+Arduino SS Micro (Leonardo) firmware for a Razer Cynosa Lite, AK5000, or similar single zone RGB keyboard.
 
 This firmware is designed for an SS Micro Arduino MCU board (based on the ATMega32u4, similar to a Leonardo).
 
