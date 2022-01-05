@@ -360,7 +360,7 @@ uint8_t read_shift_register_low_level()
   static uint8_t incoming;
 
   // Loading time
-  delayMicroseconds(1); // 1000ns: min input transition rise/fall time is <1000ns
+  __asm__("nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" ); // 500ns delay; min input transition rise/fall time @ 4.5V is <500ns
   
   // Enable shifting
   //digitalWrite(CLOCK_PIN, HIGH);
