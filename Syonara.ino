@@ -377,12 +377,14 @@ uint8_t read_shift_register_low_level()
 }
 
 // Interrupt is called once a millisecond, to update the LEDs
+// Be careful in this function, it is easy to crash the MCU (requiring a reset to recover)
 
 SIGNAL(TIMER0_COMPA_vect) 
 {
-  static int16_t r,g,b; // 16 bit ints, by design
-  static uint8_t leds;
-
+  static int16_t  r,g,b; // 16 bit ints, by design
+  static uint8_t  leds;
+  static uint32_t backlight_color;
+  
   // spread led update workload over 32x1ms timeslots to avoid spikes every millisecond
   switch( (millis() & 0b00011111) )
   {
@@ -467,18 +469,23 @@ SIGNAL(TIMER0_COMPA_vect)
         num_lock_on    = Keyboard.getLedStatus(LED_NUM_LOCK);
         led_status_update = false;
       }
-      
-      keyboard_status_leds.clear();
-      for(leds=0; leds<NUM_LEDS; leds+=2)
+      backlight_color = keyboard_status_leds.Color(r,g,b);
+      if (key_down)
       {
-        keyboard_status_leds.setPixelColor(leds, (key_down)?White:keyboard_status_leds.Color(r,g,b));
+        for(leds=0; leds<NUM_LEDS; leds+=2)
+          keyboard_status_leds.setPixelColor(leds, White);
+      }
+      else
+      {
+        for(leds=0; leds<NUM_LEDS; leds+=2)
+          keyboard_status_leds.setPixelColor(leds, backlight_color);
       }
 
       if (caps_lock_on)       keyboard_status_leds.setPixelColor(CAPS_LOCK_LED,   Red);
       if (scroll_lock_on)     keyboard_status_leds.setPixelColor(SCROLL_LOCK_LED, Green);
       if (num_lock_on)        keyboard_status_leds.setPixelColor(NUM_LOCK_LED,    Blue);
       if (application_led_on) keyboard_status_leds.setPixelColor(APPLICATION_LED, Yellow);
-      if (power_led_on)       keyboard_status_leds.setPixelColor(POWER_LED,       keyboard_status_leds.Color(r,g,b));
+      if (power_led_on)       keyboard_status_leds.setPixelColor(POWER_LED,       backlight_color);
 
       keyboard_status_leds.show();
       break;
