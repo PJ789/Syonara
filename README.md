@@ -40,6 +40,8 @@ https://github.com/arduino-libraries/Keyboard/pull/61
 
 ## Electronics
 
+See also [Bill of Materials](https://github.com/PJ789/Syonara/blob/main/BOM.md)
+
 The code requires three circuits are assembled:
 
 ### Circuit 1: keyboard scanning circuit
