@@ -113,8 +113,6 @@ const char keyboard_map_char[MAX_COLUMNS][MAX_ROWS] =
   [19] = { 'q',         KEY_PAUSE,      0,              KEY_ESC,      0,              0,              '½',          'r'             }
 };
 
-bool    key_press_detected;
-uint8_t incoming1, incoming2;
 uint8_t last_incoming_bytes[MAX_COLUMNS];
 
 int effect = 1;
@@ -164,10 +162,7 @@ Serial.println("Running");
   pinMode(      BLUE_PIN,            OUTPUT);
   digitalWrite( BLUE_PIN,            LOW);
 
-  for( uint8_t column=0; column<MAX_COLUMNS; column++)
-  {
-    last_incoming_bytes[column]=0;
-  }
+  memset(last_incoming_bytes, 0, sizeof(last_incoming_bytes));
 
   reset_decade_counters();
   
@@ -183,10 +178,15 @@ Serial.println("Running");
 
 
 void loop() {
+  // static variables for better performance
+  static bool    key_press_detected;
+  static uint8_t incoming1;
+  static uint8_t incoming2;
+  static uint8_t column;
 
   key_press_detected = false;
 
-  for (uint8_t column = 0; column < (MAX_COLUMNS/2); column++)
+  for (column = 0; column < (MAX_COLUMNS/2); column++)
   {
     incoming1 = read_shift_register( COUNTER_2_CLOCK_PIN);
     decode( column,    incoming1 );
@@ -252,10 +252,12 @@ void increment_decade_counter(int clock_pin )
 }
 uint8_t read_shift_register(int other_counter_clock_pin)
 {
+  // static variables for better performance
   // Get data from 74HC165
-  uint8_t incoming = 0;
-  uint8_t initial  = 0;
-
+  static uint8_t incoming;
+  static uint8_t initial;
+  static uint8_t column;
+  
   do
   {
     // read the value from the rows
@@ -274,8 +276,8 @@ uint8_t read_shift_register(int other_counter_clock_pin)
     // Is any keypress detected on this decade counter column?
 
     increment_decade_counter( other_counter_clock_pin );
-    uint8_t column=0;
-    for( ; incoming && column<(MAX_COLUMNS-1) ; column++)
+
+    for( column=0; incoming && column<(MAX_COLUMNS-1) ; column++)
     {
       incoming = incoming & read_shift_register_low_level();
       increment_decade_counter( other_counter_clock_pin );
@@ -293,11 +295,13 @@ uint8_t read_shift_register(int other_counter_clock_pin)
 
 void decode( uint8_t column, uint8_t incoming_byte)
 {
-  char key;
-  uint8_t row;
-  uint8_t last_incoming_byte;
-  uint8_t all_changed_bits, all_pressed_bits;
-  uint8_t row_bit_selector;
+  // static variables for better performance
+  static char key;
+  static uint8_t row;
+  static uint8_t row_bit_selector;
+  static uint8_t last_incoming_byte;
+  static uint8_t all_changed_bits;
+  static uint8_t all_pressed_bits;
    
   last_incoming_byte = last_incoming_bytes[column];
 
