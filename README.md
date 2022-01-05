@@ -1,11 +1,11 @@
 # Syonara
 Arduino SS Micro (Leonardo) firmware for a Razer Cynosa Lite, AK5000, or similar single zone RGB keyboard.
 
-This firmware is designed for an SS Micro Arduino MCU board (based on the ATMega32u4, similar to a Leonardo).
+This firmware is designed for an SS Micro Arduino MCU board (based on the ATMega32u4, similar to a Leonardo or Pro Micro).
 
-The firmware suppports all keys, single zone RGB backlighting, Caps/Num/Shift lock LED functions.
+The firmware suppports all keys, single zone RGB backlighting, Caps/Num/Shift lock Neopixel LED functions.
 
-It assumes the complete replacement of the original MCU with an SS Micro, a keyboard scanning circuit using two 4017 decade counters to scan the 20 matrix columns in tandem,  a 75HC165 shift register providing parallel to serial output from the matrix rows, a strip of WS2812 Neopixels to replace the original keyboard status LEDs, and a PWM amplifier circuit to power the RGB backlights.
+It assumes the complete replacement of the original MCU circuit with an SS Micro, a keyboard scanning circuit using two 4017 decade counters to scan the 20 matrix columns in tandem, a 74HC165 shift register providing parallel to serial output from the matrix rows, a strip of WS2812 Neopixels to replace the original keyboard status LEDs, and a PWM amplifier circuit to power the RGB backlights.
 
 ## Motivation - Why do this to a working keyboard?
 
@@ -24,7 +24,7 @@ It assumes the complete replacement of the original MCU with an SS Micro, a keyb
  - Backlight switches to red/blue/green to indicate prominently when caps lock/num lock/scroll lock are enabled
  - Keyboard status LEDs are replaced by Neopixels
  - Keyboard flickers when keys are pressed to confirm activation
- - LED indicates when keystrokes are being sent
+ - Status LED indicates when keystrokes are being sent
 
 ## Dependencies
 
@@ -56,7 +56,7 @@ The scanning circuit is 'hot-wired' onto the original (unused) circuit board, us
 
 ### Circuit 2: Caps Lock, Num Lock, Scroll Lock, and Application LEDs circuit
 
-A simple 9 Neopixel strip (taken from a 144 pixels/meter strip) replaces the original LEDs, and is placed on top of the original (unused) keyboard circuit. A piece of insulating tape under the LEDs avoids shorts.
+A simple 9 Neopixel strip (taken from a 144 pixels/meter strip) replaces the original LEDs, and is placed on top of the original (unused) keyboard circuit. A piece of insulating tape under the Neopixel strip avoids shorts.
 
 The Syonara firmware sets the correspondng LED colours for each status indication.
 
@@ -113,4 +113,4 @@ See [Sayonara Circuit Diagram](Syonara%20Circuit%20Diagram.png)
 - Support for standard LED colour setting protocols.
 - The circuit design counts over 20 matrix columns, supplying power to each column via two decade counters, then reading the output on the 8 matrix rows as a byte. Because of the keyboard membrane design, this can create false key presses if two keys on the same row/different columns are pressed at the same time (causing power to be fed to a second column) AND another key is simultaneously pressed on either column. The likelihood of this happening is reasonably low; it could be avoided by better keyboard membrane design (requires a new keyboard membrane).
  - Replace the backlight circuit with _moar_ Neopixels
- - In a perfect world, with hindsight, I would have put the decade counter clock pins on the same AVR port, so both could be set at once (saving ~62ns). 
+ - In a perfect world, with hindsight, I would have put the decade counter clock/reset pins on the same AVR port, so both could be set at once (saving ~62ns). 
