@@ -31,3 +31,12 @@
  -  3x 10K ohm gate pulldown resistors
 
 Also solder & soldering iron, hot glue & glue gun, heatshrink, and signal wires.
+
+## Coloured Wires;
+ -  20x reels of multi-coloured signal wire
+
+ _or_
+ -  1x recycled & stripped Centronics cables as a source of multi-coloured signal wires
+
+## Mounting;
+ -  hot glue or plastic rivets to secure components in place
