@@ -380,7 +380,7 @@ uint8_t read_shift_register_low_level()
 
 SIGNAL(TIMER0_COMPA_vect) 
 {
-  static uint16_t r,g,b; // 16 bit ints, by design
+  static int16_t r,g,b; // 16 bit ints, by design
 
   // spread led update workload over 32x1ms timeslots to avoid spikes every millisecond
   switch( (millis() & 0b00011111) )
@@ -390,14 +390,14 @@ SIGNAL(TIMER0_COMPA_vect)
       {
         case 1:
         case 2:     
-          r = (millis() % 10240)/20;
-          r = (r<256)?r:511-r;
+          r = map((millis() % 10240),0,10240,-200,200);
+          r = 50+abs(r);
           r = keyboard_status_leds.gamma8(r);
           break;
       }
       if (key_down||caps_lock_on)
       {
-        analogWrite(RED_PIN,255 );
+        analogWrite(RED_PIN, 254 );
       }
       else if (scroll_lock_on||num_lock_on)
       {
@@ -412,8 +412,8 @@ SIGNAL(TIMER0_COMPA_vect)
       switch(effect)
       {
         case 1:
-          g = (millis() % 12800)/25;
-          g = (g<256)?g:511-g;
+          g = map((millis() % 12800),0,12800,-200,200);
+          g = 50+abs(g);
           g = keyboard_status_leds.gamma8(g);
           break;
         case 2:
@@ -422,7 +422,7 @@ SIGNAL(TIMER0_COMPA_vect)
       }
       if (key_down||scroll_lock_on)
       {
-        analogWrite(GREEN_PIN,255 );
+        analogWrite(GREEN_PIN, 254 );
       }
       else if (caps_lock_on||num_lock_on)
       {
@@ -437,8 +437,8 @@ SIGNAL(TIMER0_COMPA_vect)
       switch(effect) //blue
       {
         case 1:
-          b = (millis() % 11264)/22;
-          b = (b<256)?b:511-b;
+          b = map((millis() % 11264),0,11264,-200,200);
+          b = 50+abs(b);
           b = keyboard_status_leds.gamma8(b);
           break;
         case 2:
@@ -447,7 +447,7 @@ SIGNAL(TIMER0_COMPA_vect)
       }
       if (key_down||num_lock_on)
       {
-        analogWrite(BLUE_PIN, 255 );
+        analogWrite(BLUE_PIN, 254 );
       }
       else if (scroll_lock_on||caps_lock_on)
       {
