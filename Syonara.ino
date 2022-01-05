@@ -189,9 +189,9 @@ void loop() {
   for (column = 0; column < (MAX_COLUMNS/2); column++)
   {
     incoming1 = read_shift_register( COUNTER_2_CLOCK_PIN);
-    decode( column,    incoming1 );
+    decode( column,                 incoming1 );
     incoming2 = read_shift_register( COUNTER_1_CLOCK_PIN);
-    decode( column+10, incoming2 );
+    decode( column+(MAX_COLUMNS/2), incoming2 );
 
     key_press_detected = incoming1||incoming2||key_press_detected;
     
@@ -205,12 +205,12 @@ void loop() {
   }
   else // do idle stuff while no key pressed
   {
-    // if a releaseAll has been enabled because a key has been pressed
+    // if a reset has been enabled because a key has been pressed
     if (key_down)
     {
       Keyboard.releaseAll();
-      key_down = false;
       reset_decade_counters();
+      key_down = false;
     }
   }
 }
@@ -277,13 +277,13 @@ uint8_t read_shift_register(int other_counter_clock_pin)
 
     increment_decade_counter( other_counter_clock_pin );
 
-    for( column=0; incoming && column<(MAX_COLUMNS-1) ; column++)
+    for( column=0; incoming && column<((MAX_COLUMNS/2)-1) ; column++)
     {
       incoming = incoming & read_shift_register_low_level();
       increment_decade_counter( other_counter_clock_pin );
     }
     // at this point incoming is true and column is 9, OR incoming is false and colum is <9, so resync counters
-    for( ; column<(MAX_COLUMNS-1) ; column++)
+    for( ; column<((MAX_COLUMNS/2)-1) ; column++)
     {
       increment_decade_counter( other_counter_clock_pin );
     }
