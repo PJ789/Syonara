@@ -60,7 +60,7 @@ The Syonara firmware sets the correspondng LED colours for each status indicatio
 
 ### Circuit 3: Keyboard RGB back light circuit
 
-A simple amplifier circuit to drive the keyboard RGB backlight using transistors or MOSFETs. PWM is used to control brightness of each RGB line, allowing colour transition effects.
+A simple amplifier circuit to drive the keyboard RGB backlight using NPN transistors or MOSFETs. PWM is used to control brightness of each RGB line, allowing colour transition effects.
 
 The Syonara firmware uses PWM to create RGB colour transition effects.
 
