@@ -23,6 +23,9 @@
 #include "Keyboard_da_DK.h"
 #include <Adafruit_NeoPixel.h>
 
+#define MAX_COLUMNS              20
+#define MAX_ROWS                  8
+
 #define DEBUG                     0
 
 #define SHIFT_OR_LOAD_PIN         2
@@ -60,7 +63,7 @@ enum NeoPixelColors {
     Black = 0x000000
 };
 
-const char* keyboard_map_string[20][8] =
+const char* keyboard_map_string[MAX_COLUMNS][MAX_ROWS] =
 {
    //      0      1      2      3      4      5      6      7
    [0] = { "SPCB","SCRL",0,     0,     0,     0,     0,     "PRTS"},
@@ -85,7 +88,7 @@ const char* keyboard_map_string[20][8] =
   [19] = { "Q",   "BRK", 0,     "ESC", 0,     0,     "½§",  "R"   }
 };
 
-const char keyboard_map_char[20][8] =
+const char keyboard_map_char[MAX_COLUMNS][MAX_ROWS] =
 {
    //      0             1              2               3             4               5               6             7
    [0] = { ' ',         KEY_SCROLL_LOCK,0,              0,            0,              0,              0,            KEY_PRINT_SCREEN},
@@ -112,7 +115,7 @@ const char keyboard_map_char[20][8] =
 
 bool    key_press_detected;
 uint8_t incoming1, incoming2;
-uint8_t last_incoming_bytes[20];
+uint8_t last_incoming_bytes[MAX_COLUMNS];
 
 int effect = 1;
 bool key_down          = false;
@@ -161,12 +164,12 @@ Serial.println("Running");
   pinMode(      BLUE_PIN,            OUTPUT);
   digitalWrite( BLUE_PIN,            LOW);
 
-  for( uint8_t column=0; column<20; column++)
+  for( uint8_t column=0; column<MAX_COLUMNS; column++)
   {
     last_incoming_bytes[column]=0;
   }
 
-  reset_counters();
+  reset_decade_counters();
   
   keyboard_status_leds.begin();
   keyboard_status_leds.setBrightness(100); // (max = 255)
@@ -183,7 +186,7 @@ void loop() {
 
   key_press_detected = false;
 
-  for (uint8_t column = 0; column <10; column++)
+  for (uint8_t column = 0; column < (MAX_COLUMNS/2); column++)
   {
     incoming1 = read_shift_register( COUNTER_2_CLOCK_PIN);
     decode( column,    incoming1 );
@@ -207,12 +210,12 @@ void loop() {
     {
       Keyboard.releaseAll();
       key_down = false;
-      reset_counters();
+      reset_decade_counters();
     }
   }
 }
 
-void reset_counters()
+void reset_decade_counters()
 {
   digitalWrite(COUNTER_1_RESET_PIN , HIGH);
   digitalWrite(COUNTER_2_RESET_PIN , HIGH);
@@ -222,7 +225,7 @@ void reset_counters()
  
 }
 
-void reset_counter( int reset_pin)
+void reset_decade_counter( int reset_pin)
 {
   digitalWrite(reset_pin , HIGH);
   __asm__("nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t"); // 312.5ns: min reset pulse width is <260ns
@@ -272,13 +275,13 @@ uint8_t read_shift_register(int other_counter_clock_pin)
 
     increment_decade_counter( other_counter_clock_pin );
     uint8_t column=0;
-    for( ; incoming && column<9 ; column++)
+    for( ; incoming && column<(MAX_COLUMNS-1) ; column++)
     {
       incoming = incoming & read_shift_register_low_level();
       increment_decade_counter( other_counter_clock_pin );
     }
     // at this point incoming is true and column is 9, OR incoming is false and colum is <9, so resync counters
-    for( ; column<9 ; column++)
+    for( ; column<(MAX_COLUMNS-1) ; column++)
     {
       increment_decade_counter( other_counter_clock_pin );
     }
