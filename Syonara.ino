@@ -331,7 +331,6 @@ void decode( uint8_t column, uint8_t incoming_byte)
 #if DEBUG
         debugReportReleasedKey(column, row, incoming_byte, last_incoming_byte);
 #endif
-        // is there an entry in the map for this column & row?
         Keyboard.release(key);
       }
     }
