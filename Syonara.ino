@@ -35,6 +35,10 @@
 #define COUNTER_2_CLOCK_PIN      16
 
 #define NEOPIXEL_PIN             A0
+#define COUNTER_1_RESET_PIN      A1
+#define COUNTER_1_CLOCK_PIN      A2
+
+// Neopixels 
 #define CAPS_LOCK_LED             0
 #define NUM_LOCK_LED              2
 #define SCROLL_LOCK_LED           4
@@ -43,10 +47,18 @@
 
 #define NUM_LEDS                  9
 Adafruit_NeoPixel keyboard_status_leds(NUM_LEDS, NEOPIXEL_PIN, NEO_GRB + NEO_KHZ800);
-
-#define COUNTER_1_RESET_PIN      A1
-#define COUNTER_1_CLOCK_PIN      A2
-
+enum NeoPixelColors {
+    Red = 0xFF0000,
+    Orange = 0xFFA500,
+    Yellow = 0xFFFF00,
+    Green = 0x00FF00,
+    Blue = 0x0000FF,
+    Indigo = 0x4b0082,
+    Violet = 0x8a2be2,
+    Purple = 0xFF00FF,
+    White = 0xFFFFFF,
+    Black = 0x000000
+};
 
 const char* keyboard_map_string[20][8] =
 {
@@ -100,7 +112,7 @@ const char keyboard_map_char[20][8] =
 
 bool    key_press_detected;
 uint8_t incoming1, incoming2;
-uint8_t last_incoming[20];
+uint8_t last_incoming_bytes[20];
 
 int effect = 1;
 bool key_down          = false;
@@ -108,8 +120,8 @@ volatile bool led_status_update = true;
 bool caps_lock_on      = false;
 bool scroll_lock_on    = false;
 bool num_lock_on       = false;
-bool application_on    = false;
-bool power_on          = true;
+bool application_led_on    = false;
+bool power_led_on          = true;
 
 void setup() {
 #if DEBUG
@@ -151,7 +163,7 @@ Serial.println("Running");
 
   for( uint8_t column=0; column<20; column++)
   {
-    last_incoming[column]=0;
+    last_incoming_bytes[column]=0;
   }
 
   reset_counters();
@@ -259,12 +271,15 @@ uint8_t read_shift_register(int other_counter_clock_pin)
     // Is any keypress detected on this decade counter column?
 
     increment_decade_counter( other_counter_clock_pin );
-    for( uint8_t column=0; column<9; column++)
+    uint8_t column=0;
+    for( ; incoming && column<9 ; column++)
     {
-      if (incoming)
-      {
-        incoming = incoming & read_shift_register_low_level();
-      }
+      incoming = incoming & read_shift_register_low_level();
+      increment_decade_counter( other_counter_clock_pin );
+    }
+    // at this point incoming is true and column is 9, OR incoming is false and colum is <9, so resync counters
+    for( ; column<9 ; column++)
+    {
       increment_decade_counter( other_counter_clock_pin );
     }
     // Has the shift register changed value while we've been scanning? if so, try again
@@ -276,54 +291,56 @@ uint8_t read_shift_register(int other_counter_clock_pin)
 void decode( uint8_t column, uint8_t incoming_byte)
 {
   char key;
-  uint8_t bit_selector;
+  uint8_t row;
   uint8_t last_incoming_byte;
   uint8_t all_incoming_bits;
-  
-  last_incoming_byte = last_incoming[column];
+  uint8_t row_bit_selector;
+   
+  last_incoming_byte = last_incoming_bytes[column];
 
   all_incoming_bits = incoming_byte | last_incoming_byte; 
 
   // is a key pressed, or might a key be released?
   if (all_incoming_bits)
   {
+    // ignore those rows where bit is not set
+    for(row=0,row_bit_selector = 1; !(row_bit_selector & all_incoming_bits); row++, row_bit_selector<<=1 );
 
-    for(uint8_t row = 0; row<8; row++)
+    // decode rows from first to last bit set, stops when row_bit_selector is shifted to zero
+    for(; row_bit_selector && (row_bit_selector<=all_incoming_bits); row++, row_bit_selector<<=1 )
     {
-      bit_selector = (1<<row);
-
-      // is a bit set in the incoming, or last incoming byte?
-      if (all_incoming_bits & bit_selector)
+      // is a key pressed that wasn't previously pressed?
+      if ( incoming_byte & row_bit_selector & ~last_incoming_byte )
       {
-
+#if DEBUG
+        debugReportPressedKey(column, row, incoming_byte, last_incoming_byte);
+#endif
         key = keyboard_map_char[column][row];
         // is there an entry in the map for this column & row?
         if (key)
         {
-          // is a key pressed that wasn't previously pressed?
-          if ( incoming_byte & bit_selector & ~last_incoming_byte )
-          {
+          Keyboard.press(key);
+          application_led_on = true;
+          delay(50); // debounce
+        }
+      }
+      // is a key released that was previously pressed?
+      else if ( last_incoming_byte & row_bit_selector & ~incoming_byte)
+      {
 #if DEBUG
-            debugReportPressedKey(column, row, incoming_byte, last_incoming_byte);
+        debugReportReleasedKey(column, row, incoming_byte, last_incoming_byte);
 #endif
-            Keyboard.press(key);
-            application_on = true;
-            delay(50); // debounce
-          }
-          // is a key released that was previously pressed?
-          else if ( last_incoming_byte & bit_selector & ~incoming_byte)
-          {
-#if DEBUG
-            debugReportReleasedKey(column, row, incoming_byte, last_incoming_byte);
-#endif
-            Keyboard.release(key);
-            application_on = false;
-          }
+        key = keyboard_map_char[column][row];
+        // is there an entry in the map for this column & row?
+        if (key)
+        {
+          Keyboard.release(key);
+          application_led_on = false;
         }
       }
     }
   }
-  last_incoming[column]=incoming_byte;
+  last_incoming_bytes[column]=incoming_byte;
 }
 
 uint8_t read_shift_register_low_level()
@@ -353,12 +370,21 @@ uint8_t read_shift_register_low_level()
 
 SIGNAL(TIMER0_COMPA_vect) 
 {
-  int r,g,b;
+  static int r,g,b;
 
   // spread led update workload over 32x1ms timeslots to avoid spikes every millisecond
   switch( (millis() & 0b00011111) )
   {
     case 0b00000000:  // process red pwm output
+      switch(effect)
+      {
+        case 1:
+        case 2:     
+          r = (millis() % 10240)/20;
+          r = (r<256)?r:511-r;
+          r = keyboard_status_leds.gamma8(r);
+          break;
+      }
       if (key_down||caps_lock_on)
       {
         analogWrite(RED_PIN,255 );
@@ -369,18 +395,22 @@ SIGNAL(TIMER0_COMPA_vect)
       }
       else
       {
-        switch(effect)
-        {
-          case 1:
-          case 2:     
-            r = (millis() % 10240)/20;
-            analogWrite(RED_PIN,   (r<256)?r:511-r );
-            break;
-        }
+        analogWrite(RED_PIN, r );
       }
       break;
     case 0b00001000: // process green pwm output
-     if (key_down||scroll_lock_on)
+      switch(effect)
+      {
+        case 1:
+          g = (millis() % 12800)/25;
+          g = (g<256)?g:511-g;
+          g = keyboard_status_leds.gamma8(g);
+          break;
+        case 2:
+          g = 0;
+          break;
+      }
+      if (key_down||scroll_lock_on)
       {
         analogWrite(GREEN_PIN,255 );
       }
@@ -390,19 +420,21 @@ SIGNAL(TIMER0_COMPA_vect)
       }
       else
       {
-        switch(effect)
-        {
-          case 1:
-            g = (millis() % 12800)/25;
-            analogWrite(GREEN_PIN, (g<256)?g:511-g );
-            break;
-          case 2:
-            analogWrite(GREEN_PIN, 0 );
-            break;
-        }
+        analogWrite(GREEN_PIN, g );
       }
       break;
     case 0b00010000:  // process blue pwm output
+      switch(effect) //blue
+      {
+        case 1:
+          b = (millis() % 11264)/22;
+          b = (b<256)?b:511-b;
+          b = keyboard_status_leds.gamma8(b);
+          break;
+        case 2:
+          b = 0;
+          break;
+      }
       if (key_down||num_lock_on)
       {
         analogWrite(BLUE_PIN, 255 );
@@ -413,31 +445,25 @@ SIGNAL(TIMER0_COMPA_vect)
       }
       else
       {
-        switch(effect) //blue
-        {
-          case 1:
-            b = (millis() % 11264)/22;
-            analogWrite(BLUE_PIN,  (b<256)?b:511-b );
-            break;
-          case 2:
-            analogWrite(BLUE_PIN, 0 );
-            break;
-        }
+        analogWrite(BLUE_PIN,  b );
       }
       break;
-    case 0b00011000:  // process keyboard status LED output
+    case 0b00011000:  // process keyboard status LED Neopixel output
       if (led_status_update)
       {
         caps_lock_on   = Keyboard.getLedStatus(LED_CAPS_LOCK);
         scroll_lock_on = Keyboard.getLedStatus(LED_SCROLL_LOCK);
         num_lock_on    = Keyboard.getLedStatus(LED_NUM_LOCK);
-        keyboard_status_leds.setPixelColor(CAPS_LOCK_LED,   keyboard_status_leds.Color((caps_lock_on)?255:0,   0,                       0));
-        keyboard_status_leds.setPixelColor(SCROLL_LOCK_LED, keyboard_status_leds.Color(0,                      (scroll_lock_on)?255:0,  0));
-        keyboard_status_leds.setPixelColor(NUM_LOCK_LED,    keyboard_status_leds.Color(0,                      0,                       (num_lock_on)?255:0));
         led_status_update = false;
       }
-      keyboard_status_leds.setPixelColor(APPLICATION_LED, keyboard_status_leds.Color((application_on)?255:0, (application_on)?255:0, 0));
-      keyboard_status_leds.setPixelColor(POWER_LED,       keyboard_status_leds.Color((power_on)?255:0,       (power_on)?255:0,       (power_on)?255:0));
+      keyboard_status_leds.fill(keyboard_status_leds.Color(r,g,b));
+      if (key_down)           keyboard_status_leds.fill(White);
+      if (caps_lock_on)       keyboard_status_leds.setPixelColor(CAPS_LOCK_LED,   Red);
+      if (scroll_lock_on)     keyboard_status_leds.setPixelColor(SCROLL_LOCK_LED, Green);
+      if (num_lock_on)        keyboard_status_leds.setPixelColor(NUM_LOCK_LED,    Blue);
+      if (application_led_on) keyboard_status_leds.setPixelColor(APPLICATION_LED, Yellow);
+      if (power_led_on)       keyboard_status_leds.setPixelColor(POWER_LED,       keyboard_status_leds.Color(r,g,b));
+      
       keyboard_status_leds.show();
       break;
   }
