@@ -52,7 +52,7 @@ A 74hc165 shift register is used to read the 8 rows of the matrix, and convert t
 
 The shift register output is read & decoded by the Syonara firmware. (An algorithm in the firmware ensures that there is no misread due to two columns being scanned at the same time).
 
-The scanning circuit is 'hot-wired' onto the original (unused) circuit board, using matrix column/row test points as a solder pads.
+The scanning circuit is 'hot-wired' onto the original (unused) circuit board, using matrix column/row test points as solder pads.
 
 ### Circuit 2: Caps Lock, Num Lock, Scroll Lock, and Application LEDs circuit
 
