@@ -115,6 +115,13 @@ Enabling the Arduino GCC -O3 compiler optimisation gives a useful 10% boost to t
 > **compiler.c.elf.flags**={compiler.warning_flags} **-O3** -g -flto -fuse-linker-plugin -Wl,--gc-sections  
 > **compiler.cpp.flags**=-c -g **-O3** {compiler.warning_flags} -std=gnu++11 -fpermissive -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics -Wno-error=narrowing -MMD -flto  
 
+## Performance Measurements
+
+ - Key press -> key press detection; 0.0013s (1ms, 750Hz)
+ - Key press detection -> key press decode; typical 0.0025-0.005s (2.5ms-5.0ms, 200-400Hz)
+ - Key press decode -> send; 0.001s (1ms, 1000Hz)
+ - Debounce: 5ms delay (200Hz)
+
 ## Design Improvements?
 
 - Add a brightness control to the backlight circuit, perhaps using an analog input. 
@@ -122,3 +129,4 @@ Enabling the Arduino GCC -O3 compiler optimisation gives a useful 10% boost to t
 - The circuit design counts over 20 matrix columns, supplying power to each column via two decade counters, then reading the output on the 8 matrix rows as a byte. Because of the keyboard membrane design, this can create false key presses if two keys on the same row/different columns are pressed at the same time (causing power to be fed to a second column) AND another key is simultaneously pressed on either column. The likelihood of this happening is reasonably low; it could be avoided by better keyboard membrane design (requires a new keyboard membrane).
  - Replace the backlight circuit with _moar_ Neopixels
  - In a perfect world, with hindsight, I would have put the decade counter clock/reset pins on the same AVR port, so both could be set at once (saving ~62ns). 
+ - Implement a per column debounce algorithm
