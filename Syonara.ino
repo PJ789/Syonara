@@ -63,6 +63,7 @@ enum NeoPixelColors {
     Black  = 0x000000
 };
 
+#if DEBUG
 const char* keyboard_map_string[MAX_COLUMNS][MAX_ROWS] =
 {
    //      0      1      2      3      4      5      6      7
@@ -87,6 +88,7 @@ const char* keyboard_map_string[MAX_COLUMNS][MAX_ROWS] =
   [18] = { "W",   "CAPS",0,     "<",   0,     0,     "F1",  "U"   },
   [19] = { "Q",   "BRK", 0,     "ESC", 0,     0,     "½§",  "R"   }
 };
+#endif
 
 const char keyboard_map_char[MAX_COLUMNS][MAX_ROWS] =
 {
