@@ -11,7 +11,7 @@ It assumes the complete replacement of the original MCU circuit with an SS Micro
 
  - Open source hardware gives you _complete_ control over the function of your keyboard
  - Better security; you have access to all the source
- - Better performance; code is carefully optimised for nanoseconds level keypress detection & signalling latency
+ - Better performance; code is carefully optimised for millisecond level keypress detection & signalling latency
  - Better functionality; add custom keyboard functions, perhaps for gaming or application use, without using proprietary macro applications
  - Eliminates Razer's original bloatware and unnecessary keyboard 'drivers'
  - Adapt the scroll lock key to do something useful :)
