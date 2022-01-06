@@ -56,7 +56,7 @@ The scanning circuit is 'hot-wired' onto the original (unused) circuit board, us
 
 ### Circuit 2: Caps Lock, Num Lock, Scroll Lock, and Application LEDs circuit
 
-A simple 9 Neopixel strip (taken from a 144 pixels/meter strip) replaces the original LEDs, and is placed on top of the original (unused) keyboard circuit. A piece of insulating tape under the Neopixel strip avoids shorts.
+A simple 9 Neopixel strip (taken from a 144 pixels/meter strip) replaces the original LEDs, and is placed on top of the original (unused) keyboard LED circuit. A piece of insulating tape under the Neopixel strip avoids shorts.
 
 The Syonara firmware sets the correspondng LED colours for each status indication.
 
