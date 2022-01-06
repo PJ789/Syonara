@@ -351,7 +351,7 @@ void decode( uint8_t column, uint8_t incoming_byte)
       debugReportPressedKey(column, row, incoming_byte, last_incoming_byte);
 #endif
       Keyboard.press(key);
-      delay(50); // debounce
+      delay(5); // debounce
     }
     // a key released that was previously pressed has been released
     else 
