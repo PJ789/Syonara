@@ -20,7 +20,6 @@
 */
 
 #include "Keyboard.h"
-#include "Keyboard_da_DK.h"
 #include <Adafruit_NeoPixel.h>
 
 #define MAX_COLUMNS              20
@@ -66,30 +65,32 @@ enum NeoPixelColors {
 #if DEBUG
 const char* keyboard_map_string[MAX_COLUMNS][MAX_ROWS] =
 {
-   //      0      1      2      3      4      5      6      7
-   [0] = { "SPCB","SCRL",0,     0,     0,     0,     0,     "PRTS"},
-   [1] = { "4",   0,     0,     "N7",  "N8",  "N9",  "N+",  "F5"  },
-   [2] = { 0,     0,     0,     0,     "RCTL",0,     "LCTL",0     },
-   [3] = { 0  ,   0,     "FUNC","LALT",0,     "ALTG",0,     0     },
-   [4] = { "X",   "BACK",0,     "F11", "ENT", "F12", "F9",  "F10" },
-   [5] = { "C",   "N4",  "N1",  "UP",  "NUM", "DOWN","DEL", 0     },
-   [6] = { "3",   0,     0,     0,     0,     0,     0,     0     },
-   [7] = { "WIND",0,     0,     0,     0,     0,     0,     0     },
-   [8] = { 0,     "LSHF","RSHF",0,     0,     0,     0,     0     },
-   [9] = { "2",   0,     "NENT","UP",  0,     "LEFT","HOME","END" },
-  [10] = { "1",   "N6",  "N3",  "N.",  "N*",  "N-",  "PGUP","PGDN"},
-  [11] = { "5",   "N5",  "N2",  "N0",  "N/",  "RGHT","INS", 0     },
-  [12] = { "Z",   "Å",   "Ö",   "Ä",   "'",   "-",   "+",   "0"   },
-  [13] = { "D",   "F7",  "L",   0,     ":.",  "MENU","F8",  "9"   },
-  [14] = { "S",   "UMLT","K",   "F6",  ",;",   0,     "´`|","8"   },
-  [15] = { "A",   "Y",   "J",   "H",   "M",   "N",   "6",   "7"   },
-  [16] = { "TAB", "T",   "F",   "G",   "V",   "B",   "P",   "0"   },
-  [17] = { "E",   "F3",  0,     "F4",  0,     0,     "F2",  "I"   },
-  [18] = { "W",   "CAPS",0,     "<",   0,     0,     "F1",  "U"   },
-  [19] = { "Q",   "BRK", 0,     "ESC", 0,     0,     "½§",  "R"   }
+   //      0              1                 2                 3              4                 5                 6               7
+   [0] = { " ",           "KEY_SCROLL_LOCK",0,                0,             0,                0,                0,              "KEY_PRINT_SCREEN"},
+   [1] = { "4",           0,                0,                "KEY_KP_7",    "KEY_KP_8",       "KEY_KP_9",       "KEY_KP_PLUS",  "KEY_F5"          },
+   [2] = { 0,             0,                0,                0,             "KEY_RIGHT_CTRL", 0,                "KEY_LEFT_CTRL",0                 },
+   [3] = { 0  ,           0,                "KEY_MENU",       "KEY_LEFT_ALT",0,                "KEY_RIGHT_ALT",  0,              0                 },
+   [4] = { "x",           "KEY_BACKSPACE",  0,                "KEY_F11",     "KEY_RETURN",     "KEY_F12",        "KEY_F9",       "KEY_F10"         },
+   [5] = { "c",           "KEY_KP_4",       "KEY_KP_1",       0,             "KEY_NUM_LOCK",   "KEY_DOWN_ARROW", "KEY_DELETE",   0                 },
+   [6] = { "3",           0,                0,                0,             0,                0,                0,              0                 },
+   [7] = { "KEY_LEFT_GUI",0,                0,                0,             0,                0,                0,              0                 },
+   [8] = { 0,             "KEY_LEFT_SHIFT", "KEY_RIGHT_SHIFT",0,             0,                0,                0,              0                 },
+   [9] = { "2",           0,                "KEY_KP_ENTER",   "KEY_UP_ARROW",0,                "KEY_LEFT_ARROW", "KEY_HOME",     "KEY_END"         },
+  [10] = { "1",           "KEY_KP_6",       "KEY_KP_3",       "KEY_KP_DOT",  "KEY_KP_ASTERISK","KEY_KP_MINUS",   "KEY_PAGE_UP",  "KEY_PAGE_DOWN"   },
+  [11] = { "5",           "KEY_KP_5",       "KEY_KP_2",       "KEY_KP_0",    "KEY_KP_SLASH",   "KEY_RIGHT_ARROW","KEY_INSERT",   0                 },
+  [12] = { "z",           "[",              ";",              "\'",          "\\",             "/",              "-",            "0"               },
+  [13] = { "d",           "KEY_F7",         "l",              0,             ".",              "KEY_MENU",       "KEY_F8",       "9"               },
+  [14] = { "s",           "]",              "k",              "KEY_F6",      ",",              0,                "=",            "8"               },
+  [15] = { "a",           "y",              "j",              "h",           "m",              "n",              "6",            "7"               },
+  [16] = { "KEY_TAB",     "t",              "f",              "g",           "v",              "b",              "p",            "o"               },
+  [17] = { "e",           "KEY_F3",         0,                "KEY_F4",      0,                0,                "KEY_F2",       "i"               },
+  [18] = { "w",           "KEY_CAPS_LOCK",  0,                "KEY_ISO",     0,                0,                "KEY_F1",       "u"               },
+  [19] = { "q",           "KEY_PAUSE",      0,                "KEY_ESC",     0,                0,                "`",            "r"               }
 };
 #endif
 
+#define KEY_ISO    0xEC
+#define KEY_BSLASH 0xB9
 const char keyboard_map_char[MAX_COLUMNS][MAX_ROWS] =
 {
    //      0             1              2               3             4               5               6             7
@@ -98,21 +99,21 @@ const char keyboard_map_char[MAX_COLUMNS][MAX_ROWS] =
    [2] = { 0,           0,              0,              0,            KEY_RIGHT_CTRL, 0,              KEY_LEFT_CTRL,0               },
    [3] = { 0  ,         0,              KEY_MENU,       KEY_LEFT_ALT, 0,              KEY_RIGHT_ALT,  0,            0               },
    [4] = { 'x',         KEY_BACKSPACE,  0,              KEY_F11,      KEY_RETURN,     KEY_F12,        KEY_F9,       KEY_F10         },
-   [5] = { 'c',         KEY_KP_4,       KEY_KP_1,       KEY_UP_ARROW, KEY_NUM_LOCK,   KEY_DOWN_ARROW, KEY_DELETE,   0               },
+   [5] = { 'c',         KEY_KP_4,       KEY_KP_1,       0,            KEY_NUM_LOCK,   KEY_DOWN_ARROW, KEY_DELETE,   0               },
    [6] = { '3',         0,              0,              0,            0,              0,              0,            0               },
    [7] = { KEY_LEFT_GUI,0,              0,              0,            0,              0,              0,            0               },
    [8] = { 0,           KEY_LEFT_SHIFT, KEY_RIGHT_SHIFT,0,            0,              0,              0,            0               },
    [9] = { '2',         0,              KEY_KP_ENTER,   KEY_UP_ARROW, 0,              KEY_LEFT_ARROW, KEY_HOME,     KEY_END         },
   [10] = { '1',         KEY_KP_6,       KEY_KP_3,       KEY_KP_DOT,   KEY_KP_ASTERISK,KEY_KP_MINUS,   KEY_PAGE_UP,  KEY_PAGE_DOWN   },
   [11] = { '5',         KEY_KP_5,       KEY_KP_2,       KEY_KP_0,     KEY_KP_SLASH,   KEY_RIGHT_ARROW,KEY_INSERT,   0               },
-  [12] = { 'z',         KEY_A_RING,     KEY_ASH,        KEY_SLASHED_O,'\'',           '-',            '+',          '0'             },
+  [12] = { 'z',         '[',            ';',            '\'',         '\\',           '/',            '-',          '0'             },
   [13] = { 'd',         KEY_F7,         'l',            0,            '.',            KEY_MENU,       KEY_F8,       '9'             },
-  [14] = { 's',         KEY_UMLAUT,     'k',            KEY_F6,       ',',            0,              KEY_ACUTE_ACC,'8'             },
+  [14] = { 's',         ']',            'k',            KEY_F6,       ',',            0,              '=',          '8'             },
   [15] = { 'a',         'y',            'j',            'h',          'm',            'n',            '6',          '7'             },
   [16] = { KEY_TAB,     't',            'f',            'g',          'v',            'b',            'p',          'o'             },
   [17] = { 'e',         KEY_F3,         0,              KEY_F4,       0,              0,              KEY_F2,       'i'             },
-  [18] = { 'w',         KEY_CAPS_LOCK,  0,              '<',          0,              0,              KEY_F1,       'u'             },
-  [19] = { 'q',         KEY_PAUSE,      0,              KEY_ESC,      0,              0,              '½',          'r'             }
+  [18] = { 'w',         KEY_CAPS_LOCK,  0,              KEY_ISO,      0,              0,              KEY_F1,       'u'             },
+  [19] = { 'q',         KEY_PAUSE,      0,              KEY_ESC,      0,              0,              '`',          'r'             }
 };
 
 uint8_t last_incoming_bytes[MAX_COLUMNS];
@@ -172,7 +173,7 @@ Serial.println("Running");
   keyboard_status_leds.begin();
   keyboard_status_leds.setBrightness(100); // (max = 255)
 
-  Keyboard.begin(KeyboardLayout_da_DK);
+  Keyboard.begin();
 
   HID().setKeyboardLedsStatusReportCallback(keyboardLedsStatusReportCallback);
 
@@ -181,6 +182,7 @@ Serial.println("Running");
 #if DEBUG
 long cycles = 0;
 long start  = millis();
+long key_timer = micros();
 #endif
 void loop() {
   // static variables for better performance
