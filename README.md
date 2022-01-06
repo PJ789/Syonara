@@ -130,3 +130,4 @@ Enabling the Arduino GCC -O3 compiler optimisation gives a useful 10% boost to t
  - Replace the backlight circuit with _moar_ Neopixels
  - In a perfect world, with hindsight, I would have put the decade counter clock/reset pins on the same AVR port, so both could be set at once (saving ~62ns). 
  - Implement a per column debounce algorithm
+ - Use a third decade counter in a cascade, so to avoid the need to test for a conflict between tandem decade counters. Requires one more 4017 decade counter ic, a bigger circuit board, and some Syonara firmware code changes. However, this could also slow the initial key press -> key press detection time period (because a much slower sequential scan would be needed using the cascaded decade counters).
