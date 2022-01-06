@@ -19,7 +19,7 @@ It assumes the complete replacement of the original MCU circuit with an SS Micro
 ## Features
 
  - Full keyboard function
- - Very low latency operation (750Hz scan rate with -O3 [compiler optimisation](README.md#compiler-optimisation), see notes below)
+ - Very low latency operation (750Hz scan rate with -O3 [compiler optimisation](README.md#compiler-optimisation), see notes below and [performance measurements](README.md#performance-measurements))
  - Backlight colour change effects with ultra low performance impact
  - Backlight switches to red/blue/green to indicate prominently when caps lock/num lock/scroll lock are enabled
  - Keyboard status LEDs are replaced by Neopixels
@@ -132,3 +132,4 @@ Enabling the Arduino GCC -O3 compiler optimisation gives a useful 10% boost to t
  - Implement a per column, or row/column, debounce algorithm
  - Use a third decade counter in a cascade, so to avoid the need to test for a conflict between tandem decade counters. Requires one more 4017 decade counter ic, a bigger circuit board, and some Syonara firmware code changes. However, this could also slow the initial key press -> key press detection time period (because a much slower sequential scan would be needed using the cascaded decade counters).
  - Alternatively, use a second 74HC165 shift register... and hack about with the keyboard membrane to separate columns 1-10 on one shift register, and 11-20 on the other shift register.  Requires one more 74HC165 shift register ic, a bigger circuit board, keyboard membrane hacks (cuts & joints to the tracks), and some Syonara firmware code changes. However, this would accelerate the initial key press -> key press decode time period (because both shift registers could be read in tandem, and no complex decoding is needed). It might also allow debounce to be reduced for one or other shift register.
+ - A RPi Pico, which has 26 multi-function GPIO pins, or Pro Mico with 18 I/O pins, could eliminate the need for a shift register.
