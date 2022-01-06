@@ -1,7 +1,7 @@
 /*
     Syonara - Arduino SS Micro (Leonardo) firmware for Razer Cynosa Lite and similar 
               single zone RGB keybaords
-    
+
     Copyright 2022 Peter John 
 
     This program is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@
 #define MAX_COLUMNS              20
 #define MAX_ROWS                  8
 
-#define DEBUG                     0
+#define DEBUG                     1
 
 #define SHIFT_OR_LOAD_PIN         2
 #define CLOCK_PIN                 3
@@ -116,6 +116,7 @@ const char keyboard_map_char[MAX_COLUMNS][MAX_ROWS] =
 };
 
 uint8_t last_incoming_bytes[MAX_COLUMNS];
+uint8_t last_shift_register_byte;
 
 int effect                      = 1;
 bool key_down                   = false;
@@ -184,6 +185,7 @@ long start  = millis();
 void loop() {
   // static variables for better performance
   static bool    key_press_detected;
+  static uint8_t incoming;
   static uint8_t incoming1;
   static uint8_t incoming2;
   static uint8_t column;
@@ -194,13 +196,19 @@ cycles++;
 
   for (column = 0; column < (MAX_COLUMNS/2); column++)
   {
-    incoming1 = read_shift_register( increment_decade_counter2 );
-    decode( column,                 incoming1 );
-    incoming2 = read_shift_register( increment_decade_counter1 );
-    decode( column+(MAX_COLUMNS/2), incoming2 );
+    incoming = read_shift_register_low_level();
 
-    key_press_detected = incoming1||incoming2||key_press_detected;
-    
+    // if there is any keyboard activity... scan the keys
+    if (incoming | last_incoming_bytes[column] | last_incoming_bytes[column+MAX_COLUMNS/2] )
+    {
+      incoming1 = read_shift_register( increment_decade_counter2 );
+      decode( column,                 incoming1 );
+      incoming2 = read_shift_register( increment_decade_counter1 );
+      decode( column+(MAX_COLUMNS/2), incoming2 );
+  
+      key_press_detected = incoming1||incoming2||key_press_detected;
+    }
+        
     increment_decade_counters();
   }
   
@@ -227,7 +235,7 @@ void reset_decade_counters()
   PORTF |= (1<<PF6);// pinA1
 //  digitalWrite(COUNTER_2_RESET_PIN , HIGH);
   PORTB |= (1<<PB1);// pin15
-  __asm__("nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t"); // 312.5ns: min reset pulse width is <260ns
+  __asm__("nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" ); // 375.0ns
 //  digitalWrite(COUNTER_1_RESET_PIN , LOW);
   PORTF &= ~(1<<PF6);// pinA1
 //  digitalWrite(COUNTER_2_RESET_PIN , LOW);
@@ -268,42 +276,47 @@ void increment_decade_counter2()
   PORTB &= ~(1<<PB2);// pin16
 
 }
-uint8_t read_shift_register(void (*increment_decade_counter)(void))
+uint8_t read_shift_register( void (*increment_other_decade_counter)(void) )
 {
   // static variables for better performance
   // Get data from 74HC165
   static uint8_t incoming;
   static uint8_t initial;
-  static uint8_t column;
+  static uint8_t result;
+  static uint8_t other_column_increments;
+
+  // read the value from the rows, 
+  incoming = last_shift_register_byte;
   
   do
   {
-    // read the value from the rows
-    if (!(incoming = read_shift_register_low_level())) return 0;
+    // if zero return (no further processing necessary: its zero)
+    if (!incoming) return 0;
    
     initial   = incoming;
 
     // =========================================
     // now scan across the other 9 columns of the other decade counter
     // to eliminate false key presses
-    // Is any keypress detected on this decade counter column?
 
-    (*increment_decade_counter)();
+    (*increment_other_decade_counter)();
 
-    for( column=0; incoming && column<((MAX_COLUMNS/2)-1) ; column++)
+    for( other_column_increments=1; incoming && other_column_increments<((MAX_COLUMNS/2)) ; other_column_increments++)
     {
       incoming = incoming & read_shift_register_low_level();
-      (*increment_decade_counter)();
+      (*increment_other_decade_counter)();
     }
-    // at this point incoming is true and column is 9, OR incoming is false and colum is <9, so resync counters
-    for( ; column<((MAX_COLUMNS/2)-1) ; column++)
+    // at this point incoming is still true and a loop of the other counter is complete, OR incoming is false, so resync counters
+    for( ; other_column_increments<((MAX_COLUMNS/2)) ; other_column_increments++)
     {
-      (*increment_decade_counter)();
+      (*increment_other_decade_counter)();  
     }
-    // Has the shift register changed value while we've been scanning? if so, try again
-  } while(initial != read_shift_register_low_level());
 
-  return incoming;
+    result = incoming;
+    // We're back in sync. Has the shift register changed value while we've been away? if so, try again
+  } while(initial != (incoming=read_shift_register_low_level()) );
+
+  return result;
 }
 
 void decode( uint8_t column, uint8_t incoming_byte)
@@ -369,6 +382,7 @@ uint8_t read_shift_register_low_level()
 
   // Get data from 74HC165
   incoming = shiftIn(SERIAL_PIN, CLOCK_PIN, MSBFIRST);
+  last_shift_register_byte = incoming;
   
   // Enable loading
   //digitalWrite(SHIFT_OR_LOAD_PIN, LOW);
@@ -518,6 +532,8 @@ void debugReportPressedKey(uint8_t column, uint8_t row, uint8_t incoming_byte, u
   Serial.print("Estimated scan rate [");
   Serial.println((((float)cycles)*1000.0)/((float)(millis()-start)));
   Serial.println("hz]");
+cycles = 0;
+start  = millis();
 }
 
 void debugReportReleasedKey(uint8_t column, uint8_t row, uint8_t incoming_byte, uint8_t last_incoming_byte)
@@ -539,6 +555,8 @@ void debugReportReleasedKey(uint8_t column, uint8_t row, uint8_t incoming_byte, 
   Serial.print("Estimated scan rate [");
   Serial.println((((float)cycles)*1000.0)/((float)(millis()-start)));
   Serial.println("hz]");
+cycles = 0;
+start  = millis();
 }
 
 void printByteAsBinary(uint8_t number, uint8_t bits)
