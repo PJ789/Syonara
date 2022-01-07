@@ -81,12 +81,13 @@ Backlight PWM Control;
 
 Decade counter control;
 
- - Counter 1 
-   - Reset pin A1
-   - Clock pin A2
+- Reset Counter 1 & 2
+   - Reset pin 15
+
+- Counter 1 
+   - Clock pin 14
  
  - Counter 2
-   - Reset pin 15
    - Clock pin 16
 
 Caps Lock, Num Lock, Scroll Lock Status LEDs;
@@ -104,8 +105,8 @@ Caps Lock, Num Lock, Scroll Lock Status LEDs;
 
 ## Circuit Diagram
 
-See [Sayonara Circuit Diagram](Syonara%20Circuit%20Diagram.png)
-![Sayonara Circuit Diagram](Syonara%20Circuit%20Diagram.png)
+See [Syonara Circuit Diagram](Syonara%20Circuit%20Diagram.png)
+![Syonara Circuit Diagram](Syonara%20Circuit%20Diagram.png)
 
 ## Compiler Optimisation
 
