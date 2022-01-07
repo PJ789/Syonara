@@ -40,7 +40,7 @@ https://github.com/arduino-libraries/Keyboard/pull/61
 
 ## Electronics
 
-See also [Bill of Materials](BOM.md) and [Circuit Diagram](README.md#circuit-diagram). See also [Bill of Materials](README.md#design-improvements) for potentially _better ways_ to implement a circuit if you don't mind making code changes.
+See also [Bill of Materials](BOM.md) and [Circuit Diagram](README.md#circuit-diagram). See also [Design Improvements](README.md#design-improvements) for potentially _better ways_ to implement a circuit if you don't mind making code changes.
 
 The code requires three circuits are assembled:
 
