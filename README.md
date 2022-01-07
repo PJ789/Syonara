@@ -46,7 +46,7 @@ The code requires three circuits are assembled:
 
 1. [Keyboard Scanning Circuit](README.md#circuit-1-keyboard-scanning-circuit)
 2. [Caps Lock, Num Lock, Scroll Lock, and Application LEDs Circuit](README.md#circuit-2-caps-lock-num-lock-scroll-lock-and-application-leds-circuit)
-3. [Keyboard RGB Back Light Circuit](README.md#circuit-diagram#circuit-3-keyboard-rgb-back-light-circuit)
+3. [Keyboard RGB Back Light Circuit](README.md#circuit-3-keyboard-rgb-back-light-circuit)
 
 ### Circuit 1: Keyboard Scanning Circuit
 
