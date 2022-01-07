@@ -14,7 +14,7 @@ It assumes the complete replacement of the original MCU circuit with an SS Micro
  - Better performance; code is carefully optimised for millisecond level keypress detection & signalling latency
  - Better functionality; add custom keyboard functions, perhaps for gaming or application use, without using proprietary macro applications
  - Eliminates Razer's original Synapse bloatware and unnecessary keyboard 'drivers'
- - Adapt the scroll lock key to do something useful :)
+ - Adapt the fn & scroll lock key to do something useful :)
 
 ## Features
 
