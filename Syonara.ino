@@ -33,12 +33,11 @@
 #define RED_PIN                   9
 #define GREEN_PIN                10
 #define BLUE_PIN                 11
-#define COUNTER_2_RESET_PIN      15
+#define COUNTER_1_CLOCK_PIN      14
+#define COUNTER_1_2_RESET_PIN    15
 #define COUNTER_2_CLOCK_PIN      16
 
 #define NEOPIXEL_PIN             A0
-#define COUNTER_1_RESET_PIN      A1
-#define COUNTER_1_CLOCK_PIN      A2
 
 // Neopixels 
 #define CAPS_LOCK_LED             0
@@ -150,12 +149,10 @@ Serial.println("Running");
   pinMode(      SHIFT_OR_LOAD_PIN,   OUTPUT);
   digitalWrite( SHIFT_OR_LOAD_PIN,   LOW);
   
-  pinMode(      COUNTER_1_RESET_PIN, OUTPUT);
-  digitalWrite( COUNTER_1_RESET_PIN, LOW);
   pinMode(      COUNTER_1_CLOCK_PIN, OUTPUT);
   digitalWrite( COUNTER_1_CLOCK_PIN, LOW);
-  pinMode(      COUNTER_2_RESET_PIN, OUTPUT);
-  digitalWrite( COUNTER_2_RESET_PIN, LOW);
+  pinMode(      COUNTER_1_2_RESET_PIN, OUTPUT);
+  digitalWrite( COUNTER_1_2_RESET_PIN, LOW);
   pinMode(      COUNTER_2_CLOCK_PIN, OUTPUT);
   digitalWrite( COUNTER_2_CLOCK_PIN, LOW);
 
@@ -233,14 +230,10 @@ cycles++;
 
 void reset_decade_counters()
 {
-//  digitalWrite(COUNTER_1_RESET_PIN , HIGH);
-  PORTF |= (1<<PF6);// pinA1
-//  digitalWrite(COUNTER_2_RESET_PIN , HIGH);
+//  digitalWrite(COUNTER_1_2_RESET_PIN , HIGH);
   PORTB |= (1<<PB1);// pin15
   __asm__("nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" ); // 375.0ns
-//  digitalWrite(COUNTER_1_RESET_PIN , LOW);
-  PORTF &= ~(1<<PF6);// pinA1
-//  digitalWrite(COUNTER_2_RESET_PIN , LOW);
+//  digitalWrite(COUNTER_1_2_RESET_PIN , LOW);
   PORTB &= ~(1<<PB1);// pin15
  
 }
@@ -248,24 +241,21 @@ void reset_decade_counters()
 void increment_decade_counters( )
 {
 //  digitalWrite(COUNTER_1_CLOCK_PIN , HIGH);
-  PORTF |= (1<<PF5);// pinA2
 //  digitalWrite(COUNTER_2_CLOCK_PIN , HIGH);
-  PORTB |= (1<<PB2);// pin16
+  PORTB |= ((1<<PB2)|(1<<PB3));// pin14 | pin16
   __asm__("nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" ); // 250.0ns: min clock pulse width is <200ns
-//  digitalWrite(COUNTER_1_CLOCK_PIN , LOW);
-  PORTF &= ~(1<<PF5);// pinA2
 //  digitalWrite(COUNTER_2_CLOCK_PIN , LOW);
-  PORTB &= ~(1<<PB2);// pin16
+  PORTB &= ~((1<<PB2)|(1<<PB3));// pin14 | pin16
 
 }
 
 void increment_decade_counter1()
 {
 //  digitalWrite(COUNTER_1_CLOCK_PIN, HIGH);
-  PORTF |= (1<<PF5);// pinA2
+  PORTB |= (1<<PB3);// pin14
   __asm__("nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" ); // 250.0ns: min clock pulse width is <200ns
 //  digitalWrite(COUNTER_1_CLOCK_PIN, LOW);
-  PORTF &= ~(1<<PF5);// pinA2
+  PORTB &= ~(1<<PB3);// pin14
 
 }
 
