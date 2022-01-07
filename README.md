@@ -19,7 +19,7 @@ It assumes the complete replacement of the original MCU circuit with an SS Micro
 ## Features
 
  - Full keyboard function
- - Very low latency operation (750Hz scan rate with -O3 [compiler optimisation](README.md#compiler-optimisation), see notes below and [performance measurements](README.md#performance-measurements))
+ - Very low latency 1ms resolution (752Hz scan rate with -O3 [compiler optimisation](README.md#compiler-optimisation), see notes below and [performance measurements](README.md#performance-measurements))
  - Backlight colour change effects with ultra low performance impact
  - Backlight switches to red/blue/green to indicate prominently when caps lock/num lock/scroll lock are enabled
  - Keyboard status LEDs are replaced by Neopixels
@@ -118,10 +118,12 @@ Enabling the Arduino GCC -O3 compiler optimisation gives a useful 10% boost to t
 
 ## Performance Measurements
 
- - Key press -> key press detection; 0.0013s (1ms, 750Hz)
- - Key press detection -> key press decode; typical 0.0025-0.005s (2.5ms-5.0ms, 200-400Hz)
- - Key press decode -> send; 0.001s (1ms, 1000Hz)
- - Debounce: 5ms delay (200Hz)
+ - Scan rate without key press: 752Hz
+ - Scan rate during key press:  340Hz
+ - Key press -> initial key press detection; 0.0013s (1.3ms)
+ - Key press detection -> key press decode; typical 0.0025-0.005s (2.5ms-5.0ms)
+ - Key press decode -> key press send; 0.001s (1.0ms)
+ - Debounce after key press: 5ms delay (200Hz)
 
 ## Design Improvements?
 
