@@ -30,11 +30,11 @@ It assumes the complete replacement of the original MCU circuit with an SS Micro
 
 HID keyboard functionality is implemented using the Arduino Keyboard library, with the following patches applied;-
 
-arduino/ArduinoCore-avr #446
+ - arduino/ArduinoCore-avr #446  
 Adds support for Keyboard LED (Caps Lock, Scroll Lock, Num Lock) 
 https://github.com/arduino/ArduinoCore-avr/pull/446
 
-arduino-libraries/Keyboard
+ - arduino-libraries/Keyboard  
 Added support for Keyboard Led status codes
 https://github.com/arduino-libraries/Keyboard/pull/61
 
@@ -44,7 +44,11 @@ See also [Bill of Materials](BOM.md) and [Circuit Diagram](README.md#circuit-dia
 
 The code requires three circuits are assembled:
 
-### Circuit 1: keyboard scanning circuit
+1. [Keyboard Scanning Circuit](README.md#circuit-1-keyboard-scanning-circuit)
+2. [Caps Lock, Num Lock, Scroll Lock, and Application LEDs Circuit](README.md#circuit-2-caps-lock-num-lock-scroll-lock-and-application-leds-circuit)
+3. [Keyboard RGB Back Light Circuit](README.md#circuit-diagram#circuit-3-keyboard-rgb-back-light-circuit)
+
+### Circuit 1: Keyboard Scanning Circuit
 
 Two 4017 decade counters are used to iterate over the 20 keyboard matrix columns in tandem.
 
@@ -54,13 +58,13 @@ The shift register output is read & decoded by the Syonara firmware. (An algorit
 
 The scanning circuit is 'hot-wired' onto the original (unused) circuit board, using matrix column/row test points as solder pads.
 
-### Circuit 2: Caps Lock, Num Lock, Scroll Lock, and Application LEDs circuit
+### Circuit 2: Caps Lock, Num Lock, Scroll Lock, and Application LEDs Circuit
 
 A simple 9 Neopixel strip (taken from a 144 pixels/meter strip) replaces the original LEDs, and is placed on top of the original (unused) keyboard LED circuit. A piece of insulating tape under the Neopixel strip avoids shorts.
 
 The Syonara firmware sets the correspondng LED colours for each status indication.
 
-### Circuit 3: Keyboard RGB back light circuit
+### Circuit 3: Keyboard RGB Back Light Circuit
 
 A simple amplifier circuit to drive the keyboard RGB backlight using NPN transistors or MOSFETs. PWM is used to control brightness of each RGB line, allowing colour transition effects.
 
