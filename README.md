@@ -153,7 +153,7 @@ Enabling the Arduino GCC -O3 compiler optimisation gives a useful 10% boost to t
  - Use the original circuit card as a donor for the contacts to the keyboard membrane, and solder to the test points/tracks on the circuit card. To do this accurately you might need a lens. Loupes are absolutely perfect for this job. Prep the card and the wire with a little solder, hold the wire on the target point, and dab briefly with a soldering iron. If you have flux that might also help; perhaps dab a little on the circuit board to encourage melting/flowing of the solder.
  - Old Centronics printer cables are a priceless source of multi-coloured wires. They have 25 lines, usually each with a different colour (or colour & black band). You can pick them up at charity shops & junk sales if you don't have one lying around. 
  - attach wires to every pin of your MCU, so that you can change the wiring/pin arrangement easily once it is all in place. This reduces the difficultly of disassembling and reassembling if you've made a mistake. 
- - Use heatshrink tube to cover the wire joints, and the end of any unused wires. Bend unsed wires over before heatshrinking (to prevent the heatshink coming off).
+ - Use heatshrink tube to cover the wire joints, and the end of any unused wires. Bend unused wires over before heatshrinking (to prevent the heatshink coming off).
  - Use hotglue or plastic rivets to keep wires & circuit cards where you want them to be. Use the hotglue to hold wires onto their solder joints.
  - Cut pathways through the keyboard supports if necessary, using a craft knife. 
  
