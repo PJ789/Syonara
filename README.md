@@ -155,7 +155,7 @@ Enabling the Arduino GCC -O3 compiler optimisation gives a useful 10% boost to t
  - attach wires to every pin of your MCU, so that you can change the wiring/pin arrangement easily once it is all in place. This reduces the difficultly of disassembling and reassembling if you've made a mistake. 
  - Use heatshrink tube to cover the wire joints, and the end of any unused wires. Bend unused wires over before heatshrinking (to prevent the heatshink coming off).
  - Use hotglue or plastic rivets to keep wires & circuit cards where you want them to be. Use the hotglue to hold wires onto their solder joints.
- - Cut pathways through the keyboard supports if necessary, using a craft knife. 
+ - Cut pathways through the keyboard support walls, if necessary, using a craft knife. 
  
 ## Design Improvements?
 
