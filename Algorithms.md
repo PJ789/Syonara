@@ -15,3 +15,11 @@ If the shift register returns a non-zero value, or there was previously a value 
 During the second stage, one of the decade counters is frozen, and the other decade counter iterates over a full cycle to confirm that the reading remains present (so verifying the reading on the first counter).
 
 The decade counters are then brought back into sync, before the result is returned for decoding.
+
+## Debounce
+
+When a key is pressed, the time of the event is recorded.
+
+On any subequent key press, if the debounce value is set, the time elapsed is checked. A second key press inside this time interval is ignored.
+
+If the key is released, the debounce is cleared.
