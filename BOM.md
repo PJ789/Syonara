@@ -10,7 +10,7 @@
  -  1x  74hc165 shift registers
  -  20x 1N4148 signal diodes to protect outputs from decade counters
  -  8x  1N4148 signal diodes to protect inputs to shift register (recommended)
- -  1x  9 pin 47K ohm SIP resistor network array acting as pull down resistors on the 8 shift register inputs
+ -  1x  9 pin 47K ohm SIP [resistor network array acting](https://www.youtube.com/watch?v=_DJ_xLOxnpE) as pull down resistors on the 8 shift register inputs
 
  _or replace last item with_
  -  8x  47K ohm 0.25w resistors acting as pull down resistors on the 8 shift register inputs
