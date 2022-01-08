@@ -40,6 +40,7 @@ It assumes the complete replacement of the original MCU circuit with an SS Micro
  - Keyboard status LEDs are replaced by Neopixels
  - Keyboard flickers when keys are pressed to confirm activation
  - Status LED indicates when keystrokes are being sent
+ - One-per-key debounce timer.
 
 ## Dependencies
 
