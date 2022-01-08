@@ -7,6 +7,9 @@ The firmware suppports all keys, single zone RGB backlighting, Caps/Num/Shift lo
 
 It assumes the complete replacement of the original MCU circuit with an SS Micro, a keyboard scanning circuit using two 4017 decade counters to scan the 20 matrix columns in tandem, a 74HC165 shift register providing parallel to serial output from the matrix rows, a strip of WS2812 Neopixels to replace the original keyboard status LEDs, and a PWM amplifier circuit to power the RGB backlights.
 
+* auto-gen TOC:
+{:toc}
+
 ## Motivation - Why do this to a working keyboard?
 
  - Open source hardware gives you _complete_ control over the function of your keyboard
