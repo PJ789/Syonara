@@ -33,7 +33,7 @@ It assumes the complete replacement of the original MCU circuit with an SS Micro
 
 ## Features
 
- - Full keyboard function
+ - Full keyboard function, including ISO key
  - Very low latency 1ms resolution (752Hz scan rate with -O3 [compiler optimisation](README.md#compiler-optimisation), see notes below and [performance measurements](README.md#performance-measurements))
  - Backlight colour change effects with ultra low performance impact
  - Backlight switches to red/blue/green to indicate prominently when caps lock/num lock/scroll lock are enabled
