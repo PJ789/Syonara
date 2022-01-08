@@ -115,6 +115,9 @@ const char keyboard_map_char[MAX_COLUMNS][MAX_ROWS] =
   [19] = { 'q',         KEY_PAUSE,      0,              KEY_ESC,      0,              0,              '`',          'r'             }
 };
 
+#define DEBOUNCE_TIMEOUT 5
+uint32_t key_debounce_times[MAX_COLUMNS][MAX_ROWS];
+
 uint8_t last_incoming_bytes[MAX_COLUMNS];
 uint8_t last_shift_register_byte;
 
@@ -131,7 +134,7 @@ void setup() {
 #if DEBUG
 Serial.begin(250000);
 while(!Serial);
-Serial.println("Running");
+Serial.println(F("Running"));
 #endif  
 
   // Timer0 is already used for millis() - we'll just interrupt somewhere
@@ -164,6 +167,7 @@ Serial.println("Running");
   digitalWrite( BLUE_PIN,            LOW);
 
   memset(last_incoming_bytes, 0, sizeof(last_incoming_bytes));
+  memset(key_debounce_times,  0, sizeof(key_debounce_times));
 
   reset_decade_counters();
   
@@ -177,9 +181,8 @@ Serial.println("Running");
 }
 
 #if DEBUG
-long cycles = 0;
-long start  = millis();
-long key_timer = micros();
+unsigned long cycles = 0;
+unsigned long cycle_count_start  = millis();
 #endif
 void loop() {
   // static variables for better performance
@@ -314,12 +317,13 @@ uint8_t read_shift_register( void (*increment_other_decade_counter)(void) )
 void decode( uint8_t column, uint8_t incoming_byte)
 {
   // static variables for better performance
-  static char key;
-  static uint8_t row;
-  static uint8_t row_bit_selector;
-  static uint8_t last_incoming_byte;
-  static uint8_t all_changed_bits;
-  static uint8_t all_pressed_bits;
+  static char     key;
+  static uint8_t  row;
+  static uint8_t  row_bit_selector;
+  static uint8_t  last_incoming_byte;
+  static uint8_t  all_changed_bits;
+  static uint8_t  all_pressed_bits;
+  static uint32_t *key_debounce_time_ptr;
    
   last_incoming_byte = last_incoming_bytes[column];
 
@@ -335,23 +339,33 @@ void decode( uint8_t column, uint8_t incoming_byte)
   // decode changed rows from first to last bit set, stops when row_bit_selector is shifted to zero
   for(; row_bit_selector && (row_bit_selector<=all_changed_bits); row++, row_bit_selector<<=1 )
   {
-    key = keyboard_map_char[column][row];
+    key                   = keyboard_map_char[column][row];
+    key_debounce_time_ptr = &key_debounce_times[column][row];
     // is a key pressed that wasn't previously pressed? note the deliberate assignment to application_led_on
     if ((application_led_on = (all_pressed_bits & row_bit_selector)))
     {
 #if DEBUG
-      debugReportPressedKey(column, row, incoming_byte, last_incoming_byte);
+      debugReportKey(column, row, incoming_byte, last_incoming_byte);
 #endif
-      Keyboard.press(key);
-      delay(5); // debounce
+      if (
+          (!(*key_debounce_time_ptr)) // if no debounce to consider
+          ||
+          ((*key_debounce_time_ptr) && (millis()-*key_debounce_time_ptr)>DEBOUNCE_TIMEOUT) // debounce has expired
+          )
+      {
+        Keyboard.press(key);
+        *key_debounce_time_ptr = millis();
+      }
+
     }
     // a key released that was previously pressed has been released
     else 
     {
 #if DEBUG
-      debugReportReleasedKey(column, row, incoming_byte, last_incoming_byte);
+      debugReportKey(column, row, incoming_byte, last_incoming_byte);
 #endif
       Keyboard.release(key);
+      *key_debounce_time_ptr = 0;
     }
   }
   last_incoming_bytes[column]=incoming_byte;
@@ -505,50 +519,41 @@ void keyboardLedsStatusReportCallback()
 }
 
 #if DEBUG
-void debugReportPressedKey(uint8_t column, uint8_t row, uint8_t incoming_byte, uint8_t last_incoming_byte)
+void debugReportKey(uint8_t column, uint8_t row, uint8_t incoming_byte, uint8_t last_incoming_byte)
 {
-  Serial.println("-----------------------------------");
-  Serial.print("Row/Column [");
+  Serial.println(F("-----------------------------------"));
+  Serial.print(F("Row/Column ["));
   Serial.print(row);
-  Serial.print("/");
+  Serial.print(F("/"));
   Serial.print(column);
-  Serial.println("]");
-  Serial.println("Last Incoming/Incoming bits [");
+  Serial.println(F("]"));
+  Serial.println(F("Last Incoming/Incoming bits ["));
   printByteAsBinary(last_incoming_byte,8);
-  Serial.println("/");
+  Serial.println(F("/"));
   printByteAsBinary(incoming_byte,8);
-  Serial.println("]");
-  Serial.print("  Pressing [");
+  Serial.println(F("]"));
+  if (incoming_byte>last_incoming_byte)
+  {
+    Serial.print(F("  Pressing ["));
+  }
+  else
+  {
+    Serial.print(F("  Releasing ["));
+  }  
   Serial.print(keyboard_map_string[column][row]);
-  Serial.println("]");
-  Serial.print("Estimated scan rate [");
-  Serial.println((((float)cycles)*1000.0)/((float)(millis()-start)));
-  Serial.println("hz]");
-cycles = 0;
-start  = millis();
-}
-
-void debugReportReleasedKey(uint8_t column, uint8_t row, uint8_t incoming_byte, uint8_t last_incoming_byte)
-{
-  Serial.println("-----------------------------------");
-  Serial.print("Row/Column [");
-  Serial.print(row);
-  Serial.print("/");
-  Serial.print(column);
-  Serial.println("]");
-  Serial.println("Last Incoming/Incoming bits [");
-  printByteAsBinary(last_incoming_byte,8);
-  Serial.println("/");
-  printByteAsBinary(incoming_byte,8);
-  Serial.println("]"); 
-  Serial.print("  Releasing [");
-  Serial.print(keyboard_map_string[column][row]);
-  Serial.println("]");
-  Serial.print("Estimated scan rate [");
-  Serial.println((((float)cycles)*1000.0)/((float)(millis()-start)));
-  Serial.println("hz]");
-cycles = 0;
-start  = millis();
+  Serial.println(F("]"));
+  Serial.println(F("Cycles since last report ["));
+  Serial.print(cycles);
+  Serial.println(F("]"));
+  Serial.println(F("Time since last report ["));
+  Serial.print(((float)(millis()-cycle_count_start)));
+  Serial.println(F("ms]"));
+  Serial.println(millis());
+  Serial.print(F("Estimated scan rate ["));
+  Serial.println((((float)cycles)*1000.0)/((float)(millis()-cycle_count_start)));
+  Serial.println(F("hz]"));
+  cycles = 0;
+  cycle_count_start  = millis();
 }
 
 void printByteAsBinary(uint8_t number, uint8_t bits)
