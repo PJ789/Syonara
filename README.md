@@ -129,6 +129,16 @@ Enabling the Arduino GCC -O3 compiler optimisation gives a useful 10% boost to t
  - Key press decode -> key press send; 0.001s (1.0ms)
  - Debounce after key press: 5ms delay (200Hz)
 
+## Tips & Tricks
+
+ - If you're using a different keyboard, you can quickly discover your keymap. Make up the circuits described, connect to the columns & rows of your keyboard, and enable the debug feature in the source code (change #define DEBUG to 1 from 0). When you connect a serial terminal to the serial line (250000bps), your Arduino will now report which row/column it believes was pressed/released, and which key that corresponds to. Now go through each key on the keyboard, noting the reported row/column, and if the reported key is incorrect, rearrange the keyboard maps in the firmware.
+ - Keep your wires long until you need to trim them. This will help you find an arrangement under the keyboard that suits
+ - Keep your circuits low profile...use every opportunity to avoid height. If the circuits are too high to fit, that's bad.
+ - Use the original circuit card as a donor for the contacts to the keyboard membrane, and solder to the test points/tracks on the circuit card. To do this accurately you might need a lens. Loupes are absolutely perfect for this job. Prep the card and the wire with a little solder, hold the wire on the target point, and dab briefly with a soldering iron. If you have flux that might also help; perhaps dab a little on the circuit board to encourage melting/flowing of the solder.
+ - Old Centronics printer cables are a priceless source of multi-coloured wires. They have 25 lines, usually each with a different colour (or colour & black band). You can pick them up at charity shops & junk sales if you don't have one lying around. 
+ - attach wires to every pin of your MCU, so that you can change the wiring/pin arrangement easily once it is all in place. This reduces the difficultly of disassembling and reassembling if you've made a mistake. 
+ - Use heatshrink tube to cover the wire joints, and the end of any unused wires. Bend unsed wires over before heatshrinking (to prevent the heatshink coming off.
+ 
 ## Design Improvements?
 
 1. Add a brightness control to the backlight circuit, perhaps using an analog input. 
