@@ -188,30 +188,25 @@ void loop() {
   // static variables for better performance
   static bool    key_press_detected;
   static uint8_t incoming;
-  static uint8_t incoming1;
-  static uint8_t incoming2;
   static uint8_t column;
 #if DEBUG
 cycles++;
 #endif
   key_press_detected = false;
 
-  for (column = 0; column < (MAX_COLUMNS/2); column++)
+  for (column = 0; column < (MAX_COLUMNS/2); column++, increment_decade_counters())
   {
     incoming = read_shift_register_low_level();
 
     // if there is any keyboard activity... scan the keys
     if (incoming | last_incoming_bytes[column] | last_incoming_bytes[column+MAX_COLUMNS/2] )
     {
-      incoming1 = read_shift_register( increment_decade_counter2 );
-      decode( column,                 incoming1 );
-      incoming2 = read_shift_register( increment_decade_counter1 );
-      decode( column+(MAX_COLUMNS/2), incoming2 );
+      decode( column,                 read_shift_register( increment_decade_counter2 ) );
+      decode( column+(MAX_COLUMNS/2), read_shift_register( increment_decade_counter1 ) );
   
-      key_press_detected = incoming1||incoming2||key_press_detected;
+      key_press_detected = true;
     }
         
-    increment_decade_counters();
   }
   
   // Was any keypress detected?
@@ -275,20 +270,20 @@ uint8_t read_shift_register( void (*increment_other_decade_counter)(void) )
 {
   // static variables for better performance
   // Get data from 74HC165
-  static uint8_t incoming;
-  static uint8_t initial;
-  static uint8_t result;
-  static uint8_t other_column_increments;
+  static uint8_t incoming_byte;
+  static uint8_t initial_byte;
+  static uint8_t result_byte;
+  static uint8_t other_decade_counter_increments;
 
   // read the value from the rows, 
-  incoming = last_shift_register_byte;
+  incoming_byte = last_shift_register_byte;
   
   do
   {
     // if zero return (no further processing necessary: its zero)
-    if (!incoming) return 0;
+    if (!incoming_byte) return 0;
    
-    initial   = incoming;
+    initial_byte   = incoming_byte;
 
     // =========================================
     // now scan across the other 9 columns of the other decade counter
@@ -296,22 +291,17 @@ uint8_t read_shift_register( void (*increment_other_decade_counter)(void) )
 
     (*increment_other_decade_counter)();
 
-    for( other_column_increments=1; incoming && other_column_increments<((MAX_COLUMNS/2)) ; other_column_increments++)
-    {
-      incoming = incoming & read_shift_register_low_level();
-      (*increment_other_decade_counter)();
-    }
+    for( other_decade_counter_increments=1; incoming_byte && other_decade_counter_increments<((MAX_COLUMNS/2)) ; other_decade_counter_increments++,(*increment_other_decade_counter)())
+      incoming_byte &= read_shift_register_low_level();
+
     // at this point incoming is still true and a loop of the other counter is complete, OR incoming is false, so resync counters
-    for( ; other_column_increments<((MAX_COLUMNS/2)) ; other_column_increments++)
-    {
-      (*increment_other_decade_counter)();  
-    }
+    for( ; other_decade_counter_increments<((MAX_COLUMNS/2)) ; other_decade_counter_increments++,(*increment_other_decade_counter)());
 
-    result = incoming;
+    result_byte = incoming_byte;
     // We're back in sync. Has the shift register changed value while we've been away? if so, try again
-  } while(initial != (incoming=read_shift_register_low_level()) );
+  } while(initial_byte != (incoming_byte=read_shift_register_low_level()) );
 
-  return result;
+  return result_byte;
 }
 
 void decode( uint8_t column, uint8_t incoming_byte)
@@ -385,28 +375,25 @@ void decode( uint8_t column, uint8_t incoming_byte)
 
 uint8_t read_shift_register_low_level()
 {
-  static uint8_t incoming;
-
   // Loading time
   //  __asm__("nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" ); // 500ns delay; min input transition rise/fall time @ 4.5V is <500ns
   
   // Enable shifting
   //digitalWrite(CLOCK_PIN, HIGH);
   PORTD |= (1<<PD0);// pin3
-  __asm__("nop\n\t"); // 62.5ns delay
+  //__asm__("nop\n\t"); // 62.5ns delay
   //digitalWrite(SHIFT_OR_LOAD_PIN, HIGH);
   PORTD |= (1<<PD1);// pin2
-  __asm__("nop\n\t"); // 62.5ns delay
+  //__asm__("nop\n\t"); // 62.5ns delay
 
   // Get data from 74HC165
-  incoming = shiftIn(SERIAL_PIN, CLOCK_PIN, MSBFIRST);
-  last_shift_register_byte = incoming;
+  last_shift_register_byte = shiftIn(SERIAL_PIN, CLOCK_PIN, MSBFIRST);
   
   // Enable loading
   //digitalWrite(SHIFT_OR_LOAD_PIN, LOW);
   PORTD &= ~(1<<PD1);// pin2
 
-  return incoming;
+  return last_shift_register_byte;
 }
 
 // Interrupt is called once a millisecond, to update the LEDs
