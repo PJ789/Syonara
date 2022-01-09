@@ -21,6 +21,7 @@
 
 #include "Keyboard.h"
 #include <Adafruit_NeoPixel.h>
+#include "EEPROM.h"
 
 #define MAX_COLUMNS              20
 #define MAX_ROWS                  8
@@ -121,7 +122,8 @@ uint32_t key_debounce_times[MAX_COLUMNS][MAX_ROWS];
 uint8_t last_incoming_bytes[MAX_COLUMNS];
 uint8_t last_shift_register_byte;
 
-int effect                      = 1;
+#define MAX_EFFECT 3
+uint8_t effect                  = 0;
 bool key_down                   = false;
 volatile bool led_status_update = true;
 bool caps_lock_on               = false;
@@ -177,6 +179,9 @@ Serial.println(F("Running"));
   Keyboard.begin();
 
   HID().setKeyboardLedsStatusReportCallback(keyboardLedsStatusReportCallback);
+
+  effect = EEPROM.read(0);
+  EEPROM.update(0, effect = (effect>MAX_EFFECT)?0:effect );
 
 }
 
@@ -347,6 +352,7 @@ void decode( uint8_t column, uint8_t incoming_byte)
           debugReportKey(column, row, incoming_byte, last_incoming_byte);
 #endif
           Keyboard.press(key);
+          if (key==((char)KEY_RIGHT_GUI)) EEPROM.update(0,(effect=(effect<MAX_EFFECT)?effect+1:0));
         }
         // a key that was previously pressed has been released
         else 
@@ -411,11 +417,15 @@ SIGNAL(TIMER0_COMPA_vect)
     case 0b00000000:  // process red pwm output
       switch(effect)
       {
-        case 1:
-        case 2:     
-          r = map((millis() & 0b0011111111000000),0,0b0011111111000000,-200,200);
-          r = 50+abs(r);
+        case 0:
+        case 1:     
+          r = map((millis() & 0b0011111111000000),0,0b0011111111000000,-150,150);
+          r = 100+abs(r);
           r = keyboard_status_leds.gamma8(r);
+          break;
+        case 2:     
+        case 3:     
+          r = 0;
           break;
       }
       if (key_down||caps_lock_on)
@@ -434,12 +444,14 @@ SIGNAL(TIMER0_COMPA_vect)
     case 0b00010000: // process green pwm output
       switch(effect)
       {
-        case 1:
-          g = map((millis() & 0b0001111111000000),0,0b0001111111000000,-200,200);
-          g = 50+abs(g);
+        case 0:
+        case 2:     
+          g = map((millis() & 0b0001111111000000),0,0b0001111111000000,-150,150);
+          g = 100+abs(g);
           g = keyboard_status_leds.gamma8(g);
           break;
-        case 2:
+        case 1:
+        case 3:     
           g = 0;
           break;
       }
@@ -459,11 +471,13 @@ SIGNAL(TIMER0_COMPA_vect)
     case 0b00100000:  // process blue pwm output
       switch(effect) //blue
       {
-        case 1:
-          b = map((millis() & 0b0000111111000000),0,0b0000111111000000,-200,200);
-          b = 50+abs(b);
+        case 0:
+        case 3: 
+          b = map((millis() & 0b0000111111000000),0,0b0000111111000000,-150,150);
+          b = 100+abs(b);
           b = keyboard_status_leds.gamma8(b);
           break;
+        case 1:
         case 2:
           b = 0;
           break;
@@ -533,24 +547,26 @@ void debugReportKey(uint8_t column, uint8_t row, uint8_t incoming_byte, uint8_t 
   Serial.println(F("]"));
   if (incoming_byte>last_incoming_byte)
   {
-    Serial.print(F("  Pressing ["));
+    Serial.print(F("PRESSING ["));
   }
   else
   {
-    Serial.print(F("  Releasing ["));
+    Serial.print(F("RELEASING ["));
   }  
   Serial.print(keyboard_map_string[column][row]);
   Serial.println(F("]"));
-  Serial.println(F("Cycles since last report ["));
+  Serial.print(F("Cycles since last report ["));
   Serial.print(cycles);
   Serial.println(F("]"));
-  Serial.println(F("Time since last report ["));
+  Serial.print(F("Time since last report ["));
   Serial.print(((float)(millis()-cycle_count_start)));
   Serial.println(F("ms]"));
-  Serial.println(millis());
   Serial.print(F("Estimated scan rate ["));
-  Serial.println((((float)cycles)*1000.0)/((float)(millis()-cycle_count_start)));
+  Serial.print((((float)cycles)*1000.0)/((float)(millis()-cycle_count_start)));
   Serial.println(F("hz]"));
+  Serial.print(F("Current effect ["));
+  Serial.print(effect);
+  Serial.println(F("]"));
   cycles = 0;
   cycle_count_start  = millis();
 }
