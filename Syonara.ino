@@ -115,7 +115,7 @@ const char keyboard_map_char[MAX_COLUMNS][MAX_ROWS] =
   [19] = { 'q',         KEY_PAUSE,      0,              KEY_ESC,      0,              0,              '`',          'r'             }
 };
 
-#define DEBOUNCE_TIMEOUT 5
+#define DEBOUNCE_TIMEOUT 10
 uint32_t key_debounce_times[MAX_COLUMNS][MAX_ROWS];
 
 uint8_t last_incoming_bytes[MAX_COLUMNS];
@@ -339,33 +339,45 @@ void decode( uint8_t column, uint8_t incoming_byte)
   // decode changed rows from first to last bit set, stops when row_bit_selector is shifted to zero
   for(; row_bit_selector && (row_bit_selector<=all_changed_bits); row++, row_bit_selector<<=1 )
   {
-    key                   = keyboard_map_char[column][row];
-    key_debounce_time_ptr = &key_debounce_times[column][row];
-    // is a key pressed that wasn't previously pressed? note the deliberate assignment to application_led_on
-    if ((application_led_on = (all_pressed_bits & row_bit_selector)))
+    if (all_changed_bits & row_bit_selector) // a change affects this row
     {
-#if DEBUG
-      debugReportKey(column, row, incoming_byte, last_incoming_byte);
-#endif
+      key_debounce_time_ptr = &key_debounce_times[column][row];
       if (
           (!(*key_debounce_time_ptr)) // if no debounce to consider
           ||
-          ((*key_debounce_time_ptr) && (millis()-*key_debounce_time_ptr)>DEBOUNCE_TIMEOUT) // debounce has expired
-          )
+          ((*key_debounce_time_ptr) && (millis()-(*key_debounce_time_ptr))>DEBOUNCE_TIMEOUT) // debounce has expired
+         )
       {
-        Keyboard.press(key);
-        *key_debounce_time_ptr = millis();
-      }
-
-    }
-    // a key released that was previously pressed has been released
-    else 
-    {
+        key = keyboard_map_char[column][row];
+        // is a key pressed that wasn't previously pressed? note the deliberate assignment to application_led_on
+        if ((application_led_on = (all_pressed_bits & row_bit_selector)))
+        {
 #if DEBUG
-      debugReportKey(column, row, incoming_byte, last_incoming_byte);
+          debugReportKey(column, row, incoming_byte, last_incoming_byte);
 #endif
-      Keyboard.release(key);
-      *key_debounce_time_ptr = 0;
+          Keyboard.press(key);
+          (*key_debounce_time_ptr) = millis();
+        }
+        // a key that was previously pressed has been released
+        else 
+        {
+#if DEBUG
+          debugReportKey(column, row, incoming_byte, last_incoming_byte);
+#endif
+          Keyboard.release(key);
+          (*key_debounce_time_ptr) = millis();
+        }
+      }
+      else // handle debounce by setting the incoming bit to the last incoming bit
+      {
+#if DEBUG
+        Serial.println("Debounce!");
+#endif
+        if (last_incoming_byte & row_bit_selector)
+          incoming_byte = incoming_byte | row_bit_selector;
+        else
+          incoming_byte = incoming_byte & ~row_bit_selector;
+      }
     }
   }
   last_incoming_bytes[column]=incoming_byte;
