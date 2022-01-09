@@ -138,12 +138,12 @@ Enabling the Arduino GCC -O3 compiler optimisation gives a useful 10% boost to t
 
 ## Performance Measurements
 
- - Scan rate without key press: 752Hz
- - Scan rate during key press:  340Hz
+ - Scan rate without key press: 752Hz (120,000 keys/second)
+ - Scan rate during key press:  340Hz (54,000 keys/asceond)
  - Key press -> initial key press detection; 0.0013s (1.3ms)
  - Key press detection -> key press decode; typical 0.0025-0.005s (2.5ms-5.0ms)
  - Key press decode -> key press send; 0.001s (1.0ms)
- - Debounce after key press: 5ms delay _per key_ (200Hz)
+ - Debounce after key press: 10ms delay _per key_ (200Hz)
 
 ## Tips & Tricks
 
