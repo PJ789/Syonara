@@ -319,10 +319,10 @@ void decode( uint8_t column, uint8_t incoming_byte)
   // static variables for better performance
   static char     key;
   static uint8_t  row;
-  static uint8_t  row_bit_selector;
   static uint8_t  last_incoming_byte;
   static uint8_t  all_changed_bits;
   static uint8_t  all_pressed_bits;
+  static uint8_t  row_bit_selector;
   static uint32_t *key_debounce_time_ptr;
    
   last_incoming_byte = last_incoming_bytes[column];
@@ -334,13 +334,14 @@ void decode( uint8_t column, uint8_t incoming_byte)
   all_pressed_bits = all_changed_bits & incoming_byte;
   
   // ignore those rows where changed bit is not set
-  for(row=0,row_bit_selector = 1; !(row_bit_selector & all_changed_bits); row++, row_bit_selector<<=1 );
+  for(row=0; !(1 & all_changed_bits); row++, all_changed_bits>>=1 );
 
-  // decode changed rows from first to last bit set, stops when row_bit_selector is shifted to zero
-  for(; row_bit_selector && (row_bit_selector<=all_changed_bits); row++, row_bit_selector<<=1 )
+  // decode changed rows from first to last bit set, stops when all_changed_bits is shifted to zero
+  for(; all_changed_bits; row++, all_changed_bits>>=1 )
   {
-    if (all_changed_bits & row_bit_selector) // a change affects this row
+    if (1 & all_changed_bits) // a change affects this row
     {
+      row_bit_selector=(1<<row);
       key_debounce_time_ptr = &key_debounce_times[column][row];
       if (
           (!(*key_debounce_time_ptr)) // if no debounce to consider
@@ -356,7 +357,6 @@ void decode( uint8_t column, uint8_t incoming_byte)
           debugReportKey(column, row, incoming_byte, last_incoming_byte);
 #endif
           Keyboard.press(key);
-          (*key_debounce_time_ptr) = millis();
         }
         // a key that was previously pressed has been released
         else 
@@ -365,8 +365,8 @@ void decode( uint8_t column, uint8_t incoming_byte)
           debugReportKey(column, row, incoming_byte, last_incoming_byte);
 #endif
           Keyboard.release(key);
-          (*key_debounce_time_ptr) = millis();
         }
+        (*key_debounce_time_ptr) = millis();
       }
       else // handle debounce by setting the incoming bit to the last incoming bit
       {
@@ -374,9 +374,9 @@ void decode( uint8_t column, uint8_t incoming_byte)
         Serial.println("Debounce!");
 #endif
         if (last_incoming_byte & row_bit_selector)
-          incoming_byte = incoming_byte | row_bit_selector;
+          incoming_byte |=   row_bit_selector;
         else
-          incoming_byte = incoming_byte & ~row_bit_selector;
+          incoming_byte &=  ~row_bit_selector;
       }
     }
   }
