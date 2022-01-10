@@ -123,7 +123,7 @@ uint8_t last_incoming_bytes[MAX_COLUMNS];
 uint8_t last_shift_register_byte;
 
 #define EFFECT_CHANGE_KEY KEY_PAUSE
-#define MAX_EFFECT 3
+#define MAX_EFFECT 8
 uint8_t effect                  = 0;
 bool key_down                   = false;
 volatile bool led_status_update = true;
@@ -272,6 +272,7 @@ void increment_decade_counter2()
   PORTB &= ~(1<<PB2);// pin16
 
 }
+
 uint8_t read_shift_register( void (*increment_other_decade_counter)(void) )
 {
   // static variables for better performance
@@ -383,6 +384,7 @@ void decode( uint8_t column, uint8_t incoming_byte)
 uint8_t read_shift_register_low_level()
 {
   // Loading time
+  // note, its possible that if 10K pulldown resistors are used this could be reduced to 1ms or less
   delayMicroseconds(4);
   
   // Enable shifting, clock high, shift or load high
@@ -414,21 +416,38 @@ SIGNAL(TIMER0_COMPA_vect)
   static uint32_t backlight_color;
   
   // spread led update workload over 64x1ms timeslots to avoid spikes every millisecond
+  // effects:
+  // 0 - colour backlight transitions
+  // 1 - red transitions only
+  // 2 - green transitions only
+  // 3 - blue transitions only
+  // 4 - red-green transitions only
+  // 5 - red-blue transitions only
+  // 6 - cyan transitions only
+  // 7 - simple white backlight, no transitions
+  // 8 - backlight effects off
+  
   switch( (millis() & 0b00111111) )
   {
     case 0b00000000:  // process red pwm output
       switch(effect)
       {
         case 0:
-        case 1:     
+        case 1:
+        case 4:
+        case 5:
           r = map((millis() & 0b0011111111000000),0,0b0011111111000000,-150,150);
           r = 100+abs(r);
           r = keyboard_status_leds.gamma8(r);
           break;
-        case 2:     
-        case 3:     
+        case 2:
+        case 3:
+        case 6:
+        case 8:
           r = 0;
           break;
+        case 7:
+          r = 150;
       }
       if (key_down||caps_lock_on)
       {
@@ -447,14 +466,21 @@ SIGNAL(TIMER0_COMPA_vect)
       switch(effect)
       {
         case 0:
-        case 2:     
+        case 2:
+        case 4:
+        case 6:
           g = map((millis() & 0b0001111111000000),0,0b0001111111000000,-150,150);
           g = 100+abs(g);
           g = keyboard_status_leds.gamma8(g);
           break;
         case 1:
-        case 3:     
+        case 3:
+        case 5:
+        case 8:
           g = 0;
+          break;
+        case 7:
+          g = 150;
           break;
       }
       if (key_down||scroll_lock_on)
@@ -475,13 +501,20 @@ SIGNAL(TIMER0_COMPA_vect)
       {
         case 0:
         case 3: 
+        case 5: 
+        case 6: 
           b = map((millis() & 0b0000111111000000),0,0b0000111111000000,-150,150);
           b = 100+abs(b);
           b = keyboard_status_leds.gamma8(b);
           break;
         case 1:
-        case 2:
+        case 2: 
+        case 4: 
+        case 8: 
           b = 0;
+          break;
+        case 7:
+          b = 150;
           break;
       }
       if (key_down||num_lock_on)
