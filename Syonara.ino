@@ -123,7 +123,7 @@ uint8_t last_incoming_bytes[MAX_COLUMNS];
 uint8_t last_shift_register_byte;
 
 #define EFFECT_CHANGE_KEY KEY_PAUSE
-#define MAX_EFFECT 14
+#define MAX_EFFECT 15
 uint8_t effect                  = 0;
 bool key_down                   = false;
 volatile bool led_status_update = true;
@@ -422,7 +422,8 @@ enum BacklightEffects {
   SolidYellow,           // 11 - solid yellow backlight, no transitions
   SolidMagenta,          // 12 - solid magenta backlight, no transitions
   SolidCyan,             // 13 - solid cyan backlight, no transitions
-  BacklightOff           // 14 - backlight effects off
+  BacklightOff,          // 14 - backlight effects off
+  Rainbow                // 15 - rainbow colour cycle
 };
 
 // Interrupt is called once a millisecond, to update the LEDs
@@ -470,6 +471,9 @@ SIGNAL(TIMER0_COMPA_vect)
               break;
           }
           break;
+        case Rainbow:
+          r = (keyboard_status_leds.ColorHSV(millis() & 0xFFFF) & 0xFF0000)>>16;
+          break;
         default:
           break;
       }
@@ -511,6 +515,9 @@ SIGNAL(TIMER0_COMPA_vect)
             default:
               break;
           }
+          break;
+        case Rainbow:
+          g = (keyboard_status_leds.ColorHSV(millis() & 0xFFFF) & 0x00FF00)>>8;
           break;
         default:
           break;
@@ -554,6 +561,9 @@ SIGNAL(TIMER0_COMPA_vect)
             default:
               break;
           }
+          break;
+        case Rainbow:
+          b = keyboard_status_leds.ColorHSV(millis() & 0xFFFF) & 0x0000FF;
           break;
         default:
           break;
