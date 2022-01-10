@@ -274,6 +274,8 @@ void increment_decade_counter2()
 }
 uint8_t read_shift_register( void (*increment_other_decade_counter)(void) )
 {
+long start_time;
+start_time=micros();
   // static variables for better performance
   // Get data from 74HC165
   static uint8_t incoming_byte;
@@ -383,9 +385,9 @@ void decode( uint8_t column, uint8_t incoming_byte)
 uint8_t read_shift_register_low_level()
 {
   // Loading time
-  //  __asm__("nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" ); // 500ns delay; min input transition rise/fall time @ 4.5V is <500ns
+  delayMicroseconds(4);
   
-  // Enable shifting
+  // Enable shifting, clock high, shift or load high
   //digitalWrite(CLOCK_PIN, HIGH);
   //PORTD |= (1<<PD0);// pin3
   //__asm__("nop\n\t"); // 62.5ns delay
