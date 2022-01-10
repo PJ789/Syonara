@@ -439,124 +439,131 @@ SIGNAL(TIMER0_COMPA_vect)
   switch( (millis() & 0b00111111) )
   {
     case 0b00000000:  // process red pwm output
+      r = 0;
       switch(effect)
       {
-        case ColourTransitions:
-        case RedTransitions:
-        case RedGreenTransitions:
-        case RedBlueTransitions:
-          r = map((millis() & 0b0011111111000000),0,0b0011111111000000,-150,150);
-          r = 100+abs(r);
-          r = keyboard_status_leds.gamma8(r);
+        case ColourTransitions...BlueGreenTransitions:
+          switch(effect)
+          {
+            case ColourTransitions:
+            case RedTransitions:
+            case RedGreenTransitions:
+            case RedBlueTransitions:
+              r = map((millis() & 0b0011111111000000),0,0b0011111111000000,-150,150);
+              r = 100+abs(r);
+              r = keyboard_status_leds.gamma8(r);
+              break;
+            default:
+              break;
+          }
           break;
-        case GreenTransitions:
-        case BlueTransitions:
-        case BlueGreenTransitions:
-        case SolidGreen:
-        case SolidBlue:
-        case SolidCyan:
-        case BacklightOff:
-          r = 0;
+        case SolidWhite...SolidCyan:
+          switch(effect)
+          {
+            case SolidWhite:
+            case SolidRed:
+            case SolidYellow:
+            case SolidMagenta:
+              r = 150;           
+              break;
+            default:
+              break;
+          }
           break;
-        case SolidWhite:
-        case SolidRed:
-        case SolidYellow:
-        case SolidMagenta:
-          r = 150;
+        default:
           break;
       }
-      if (key_down||caps_lock_on)
-      {
-        analogWrite(RED_PIN, 254 );
-      }
-      else if (scroll_lock_on||num_lock_on)
-      {
-        analogWrite(RED_PIN,0 );
-      }
-      else
-      {
-        analogWrite(RED_PIN, r );
-      }
+ 
+      r = ( scroll_lock_on || num_lock_on  ) ?   0:r;
+      r = ( key_down       || caps_lock_on ) ? 254:r;
+
+      analogWrite(RED_PIN, r );
+
       break;
     case 0b00010000: // process green pwm output
+      g = 0;
       switch(effect)
       {
-        case ColourTransitions:
-        case GreenTransitions:
-        case RedGreenTransitions:
-        case BlueGreenTransitions:
-          g = map((millis() & 0b0001111111000000),0,0b0001111111000000,-150,150);
-          g = 100+abs(g);
-          g = keyboard_status_leds.gamma8(g);
+        case ColourTransitions...BlueGreenTransitions:
+          switch(effect)
+          {
+            case ColourTransitions:
+            case GreenTransitions:
+            case RedGreenTransitions:
+            case BlueGreenTransitions:
+              g = map((millis() & 0b0001111111000000),0,0b0001111111000000,-150,150);
+              g = 100+abs(g);
+              g = keyboard_status_leds.gamma8(g);
+              break;
+            default:
+              break;
+          }
           break;
-        case RedTransitions:
-        case BlueTransitions:
-        case RedBlueTransitions:
-        case SolidRed:
-        case SolidBlue:
-        case SolidMagenta:
-        case BacklightOff:
-          g = 0;
+        case SolidWhite...SolidCyan:
+          switch(effect)
+          {
+            case SolidWhite:
+            case SolidGreen:
+            case SolidYellow:
+            case SolidCyan:
+              g = 150;
+              break;          
+            default:
+              break;
+          }
           break;
-        case SolidWhite:
-        case SolidGreen:
-        case SolidYellow:
-        case SolidCyan:
-          g = 150;
+        default:
           break;
       }
-      if (key_down||scroll_lock_on)
-      {
-        analogWrite(GREEN_PIN, 254 );
-      }
-      else if (caps_lock_on||num_lock_on)
-      {
-        analogWrite(GREEN_PIN  ,0 );
-      }
-      else
-      {
-        analogWrite(GREEN_PIN, g );
-      }
-      break;
+    
+      g = ( caps_lock_on || num_lock_on   ) ?   0:g;
+      g = ( key_down     || scroll_lock_on) ? 254:g;
+      
+      analogWrite(GREEN_PIN, g );
+
+      break; 
+ 
     case 0b00100000:  // process blue pwm output
-      switch(effect) //blue
+       b = 0;
+      switch(effect)
       {
-        case ColourTransitions:
-        case BlueTransitions: 
-        case RedBlueTransitions: 
-        case BlueGreenTransitions: 
-          b = map((millis() & 0b0000111111000000),0,0b0000111111000000,-150,150);
-          b = 100+abs(b);
-          b = keyboard_status_leds.gamma8(b);
+        case ColourTransitions...BlueGreenTransitions:
+          switch(effect)
+          {
+              case ColourTransitions:
+              case BlueTransitions: 
+              case RedBlueTransitions: 
+              case BlueGreenTransitions: 
+                b = map((millis() & 0b0000111111000000),0,0b0000111111000000,-150,150);
+                b = 100+abs(b);
+                b = keyboard_status_leds.gamma8(b);
+              break;
+            default:
+              break;
+          }
           break;
-        case RedTransitions:
-        case GreenTransitions: 
-        case RedGreenTransitions: 
-        case SolidRed: 
-        case SolidGreen: 
-        case SolidYellow: 
-        case BacklightOff: 
-          b = 0;
+        case SolidWhite...SolidCyan:
+          switch(effect)
+          {
+            case SolidWhite:
+            case SolidBlue:
+            case SolidMagenta:
+            case SolidCyan:
+              b = 150;
+              break;          
+            default:
+              break;
+          }
           break;
-        case SolidWhite:
-        case SolidBlue:
-        case SolidMagenta:
-        case SolidCyan:
-          b = 150;
+        default:
           break;
       }
-      if (key_down||num_lock_on)
-      {
-        analogWrite(BLUE_PIN, 254 );
-      }
-      else if (scroll_lock_on||caps_lock_on)
-      {
-        analogWrite(BLUE_PIN,   0 );
-      }
-      else
-      {
-        analogWrite(BLUE_PIN,  b );
-      }
+ 
+      b = ( scroll_lock_on || caps_lock_on )?   0:b;
+      b = ( key_down       || num_lock_on  )? 254:b;
+
+      analogWrite(BLUE_PIN,  b );
+
       break;
     case 0b00110000:  // process keyboard status LED Neopixel output
       if (led_status_update)
