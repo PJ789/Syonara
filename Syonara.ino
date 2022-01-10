@@ -123,7 +123,7 @@ uint8_t last_incoming_bytes[MAX_COLUMNS];
 uint8_t last_shift_register_byte;
 
 #define EFFECT_CHANGE_KEY KEY_PAUSE
-#define MAX_EFFECT 8
+#define MAX_EFFECT 14
 uint8_t effect                  = 0;
 bool key_down                   = false;
 volatile bool led_status_update = true;
@@ -406,6 +406,25 @@ uint8_t read_shift_register_low_level()
   return last_shift_register_byte;
 }
 
+
+enum BacklightEffects {
+  ColourTransitions = 0, // 0 - colour backlight transitions
+  RedTransitions,        // 1 - red transitions only
+  GreenTransitions,      // 2 - green transitions only
+  BlueTransitions,       // 3 - blue transitions only
+  RedGreenTransitions,   // 4 - red-green transitions only
+  RedBlueTransitions,    // 5 - red-blue transitions only
+  BlueGreenTransitions,  // 6 - blue-green transitions only
+  SolidWhite,            // 7 - solid white backlight, no transitions
+  SolidRed,              // 8 - solid red backlight, no transitions
+  SolidGreen,            // 9 - solid green backlight, no transitions
+  SolidBlue,             // 10 - solid blue backlight, no transitions
+  SolidYellow,           // 11 - solid yellow backlight, no transitions
+  SolidMagenta,          // 12 - solid magenta backlight, no transitions
+  SolidCyan,             // 13 - solid cyan backlight, no transitions
+  BacklightOff           // 14 - backlight effects off
+};
+
 // Interrupt is called once a millisecond, to update the LEDs
 // Be careful in this function, it is easy to crash the MCU (requiring a reset to recover)
 
@@ -414,40 +433,37 @@ SIGNAL(TIMER0_COMPA_vect)
   static int16_t  r,g,b; // 16 bit ints, by design
   static uint8_t  leds;
   static uint32_t backlight_color;
-  
+
   // spread led update workload over 64x1ms timeslots to avoid spikes every millisecond
   // effects:
-  // 0 - colour backlight transitions
-  // 1 - red transitions only
-  // 2 - green transitions only
-  // 3 - blue transitions only
-  // 4 - red-green transitions only
-  // 5 - red-blue transitions only
-  // 6 - blue-green transitions only
-  // 7 - simple white backlight, no transitions
-  // 8 - backlight effects off
-  
   switch( (millis() & 0b00111111) )
   {
     case 0b00000000:  // process red pwm output
       switch(effect)
       {
-        case 0:
-        case 1:
-        case 4:
-        case 5:
+        case ColourTransitions:
+        case RedTransitions:
+        case RedGreenTransitions:
+        case RedBlueTransitions:
           r = map((millis() & 0b0011111111000000),0,0b0011111111000000,-150,150);
           r = 100+abs(r);
           r = keyboard_status_leds.gamma8(r);
           break;
-        case 2:
-        case 3:
-        case 6:
-        case 8:
+        case GreenTransitions:
+        case BlueTransitions:
+        case BlueGreenTransitions:
+        case SolidGreen:
+        case SolidBlue:
+        case SolidCyan:
+        case BacklightOff:
           r = 0;
           break;
-        case 7:
+        case SolidWhite:
+        case SolidRed:
+        case SolidYellow:
+        case SolidMagenta:
           r = 150;
+          break;
       }
       if (key_down||caps_lock_on)
       {
@@ -465,21 +481,27 @@ SIGNAL(TIMER0_COMPA_vect)
     case 0b00010000: // process green pwm output
       switch(effect)
       {
-        case 0:
-        case 2:
-        case 4:
-        case 6:
+        case ColourTransitions:
+        case GreenTransitions:
+        case RedGreenTransitions:
+        case BlueGreenTransitions:
           g = map((millis() & 0b0001111111000000),0,0b0001111111000000,-150,150);
           g = 100+abs(g);
           g = keyboard_status_leds.gamma8(g);
           break;
-        case 1:
-        case 3:
-        case 5:
-        case 8:
+        case RedTransitions:
+        case BlueTransitions:
+        case RedBlueTransitions:
+        case SolidRed:
+        case SolidBlue:
+        case SolidMagenta:
+        case BacklightOff:
           g = 0;
           break;
-        case 7:
+        case SolidWhite:
+        case SolidGreen:
+        case SolidYellow:
+        case SolidCyan:
           g = 150;
           break;
       }
@@ -499,21 +521,27 @@ SIGNAL(TIMER0_COMPA_vect)
     case 0b00100000:  // process blue pwm output
       switch(effect) //blue
       {
-        case 0:
-        case 3: 
-        case 5: 
-        case 6: 
+        case ColourTransitions:
+        case BlueTransitions: 
+        case RedBlueTransitions: 
+        case BlueGreenTransitions: 
           b = map((millis() & 0b0000111111000000),0,0b0000111111000000,-150,150);
           b = 100+abs(b);
           b = keyboard_status_leds.gamma8(b);
           break;
-        case 1:
-        case 2: 
-        case 4: 
-        case 8: 
+        case RedTransitions:
+        case GreenTransitions: 
+        case RedGreenTransitions: 
+        case SolidRed: 
+        case SolidGreen: 
+        case SolidYellow: 
+        case BacklightOff: 
           b = 0;
           break;
-        case 7:
+        case SolidWhite:
+        case SolidBlue:
+        case SolidMagenta:
+        case SolidCyan:
           b = 150;
           break;
       }
