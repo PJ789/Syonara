@@ -423,7 +423,7 @@ SIGNAL(TIMER0_COMPA_vect)
   // 3 - blue transitions only
   // 4 - red-green transitions only
   // 5 - red-blue transitions only
-  // 6 - cyan transitions only
+  // 6 - blue-green transitions only
   // 7 - simple white backlight, no transitions
   // 8 - backlight effects off
   
