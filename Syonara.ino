@@ -16,7 +16,7 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
-    
+
 */
 
 #include "Keyboard.h"
@@ -122,6 +122,7 @@ uint32_t key_debounce_times[MAX_COLUMNS][MAX_ROWS];
 uint8_t last_incoming_bytes[MAX_COLUMNS];
 uint8_t last_shift_register_byte;
 
+#define EFFECT_CHANGE_KEY KEY_PAUSE
 #define MAX_EFFECT 3
 uint8_t effect                  = 0;
 bool key_down                   = false;
@@ -352,7 +353,7 @@ void decode( uint8_t column, uint8_t incoming_byte)
           debugReportKey(column, row, incoming_byte, last_incoming_byte);
 #endif
           Keyboard.press(key);
-          if (key==((char)KEY_RIGHT_GUI)) EEPROM.update(0,(effect=(effect<MAX_EFFECT)?effect+1:0));
+          if (key==((char)EFFECT_CHANGE_KEY)) EEPROM.update(0,(effect=(effect<MAX_EFFECT)?effect+1:0));
         }
         // a key that was previously pressed has been released
         else 
@@ -386,11 +387,12 @@ uint8_t read_shift_register_low_level()
   
   // Enable shifting
   //digitalWrite(CLOCK_PIN, HIGH);
-  PORTD |= (1<<PD0);// pin3
+  //PORTD |= (1<<PD0);// pin3
   //__asm__("nop\n\t"); // 62.5ns delay
   //digitalWrite(SHIFT_OR_LOAD_PIN, HIGH);
-  PORTD |= (1<<PD1);// pin2
+  //PORTD |= (1<<PD1);// pin2
   //__asm__("nop\n\t"); // 62.5ns delay
+  PORTD |= (1<<PD0)|(1<<PD1);// pin3 + pin2
 
   // Get data from 74HC165
   last_shift_register_byte = shiftIn(SERIAL_PIN, CLOCK_PIN, MSBFIRST);
