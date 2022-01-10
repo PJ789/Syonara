@@ -274,8 +274,6 @@ void increment_decade_counter2()
 }
 uint8_t read_shift_register( void (*increment_other_decade_counter)(void) )
 {
-long start_time;
-start_time=micros();
   // static variables for better performance
   // Get data from 74HC165
   static uint8_t incoming_byte;
