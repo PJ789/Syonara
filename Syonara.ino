@@ -200,12 +200,10 @@ cycles++;
 #endif
   key_press_detected = false;
 
-  for (column = 0; column < (MAX_COLUMNS/2); column++, increment_decade_counters())
+  for (column = 0; column != (MAX_COLUMNS/2); column++, increment_decade_counters())
   {
-    incoming = read_shift_register_low_level();
-
-    // if there is any keyboard activity... scan the keys
-    if (incoming | last_incoming_bytes[column] | last_incoming_bytes[column+MAX_COLUMNS/2] )
+    // if there is any keyboard activity... keys pressed or keys released scan the keys
+    if (read_shift_register_low_level() | last_incoming_bytes[column] | last_incoming_bytes[column+MAX_COLUMNS/2] )
     {
       decode( column,                 read_shift_register( increment_decade_counter2 ) );
       decode( column+(MAX_COLUMNS/2), read_shift_register( increment_decade_counter1 ) );
@@ -215,14 +213,14 @@ cycles++;
         
   }
   
-  // Was any keypress detected?
+  // Was any keypress detected in this cycle?
   if (key_press_detected)
   {
-    key_down=  true;
+    key_down =  true;
   }
   else // do idle stuff while no key pressed
   {
-    // if a reset has been enabled because a key has been pressed
+    // if all keys have been released reset the decade counters to keep them in good sync
     if (key_down)
     {
       Keyboard.releaseAll();
@@ -298,11 +296,11 @@ uint8_t read_shift_register( void (*increment_other_decade_counter)(void) )
 
     (*increment_other_decade_counter)();
 
-    for( other_decade_counter_increments=1; incoming_byte && other_decade_counter_increments<((MAX_COLUMNS/2)) ; other_decade_counter_increments++,(*increment_other_decade_counter)())
+    for( other_decade_counter_increments=1; incoming_byte && other_decade_counter_increments!=((MAX_COLUMNS/2)) ; other_decade_counter_increments++,(*increment_other_decade_counter)())
       incoming_byte &= read_shift_register_low_level();
 
     // at this point incoming is still true and a loop of the other counter is complete, OR incoming is false, so resync counters
-    for( ; other_decade_counter_increments<((MAX_COLUMNS/2)) ; other_decade_counter_increments++,(*increment_other_decade_counter)());
+    for( ; other_decade_counter_increments!=((MAX_COLUMNS/2)) ; other_decade_counter_increments++,(*increment_other_decade_counter)());
 
     result_byte = incoming_byte;
     // We're back in sync. Has the shift register changed value while we've been away? if so, try again
