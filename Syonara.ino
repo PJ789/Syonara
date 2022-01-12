@@ -202,7 +202,7 @@ cycles++;
 
   for (column = 0; column != (MAX_COLUMNS/2); column++, increment_decade_counters())
   {
-    // if there is any keyboard activity... keys pressed or keys released scan the keys
+    // if there is any keyboard activity... keys pressed or keys released scan & decode the keys
     if (read_shift_register_low_level() | last_incoming_bytes[column] | last_incoming_bytes[column+MAX_COLUMNS/2] )
     {
       decode( column,                 read_shift_register( increment_decade_counter2 ) );
@@ -280,15 +280,13 @@ uint8_t read_shift_register( void (*increment_other_decade_counter)(void) )
   static uint8_t result_byte;
   static uint8_t other_decade_counter_increments;
 
-  // read the value from the rows, 
-  incoming_byte = last_shift_register_byte;
-  
   do
   {
     // if zero return (no further processing necessary: its zero)
-    if (!incoming_byte) return 0;
+    if (!last_shift_register_byte) return 0;
    
-    initial_byte   = incoming_byte;
+    incoming_byte = last_shift_register_byte;
+    initial_byte  = incoming_byte;
 
     // =========================================
     // now scan across the other 9 columns of the other decade counter
@@ -296,15 +294,15 @@ uint8_t read_shift_register( void (*increment_other_decade_counter)(void) )
 
     (*increment_other_decade_counter)();
 
-    for( other_decade_counter_increments=1; incoming_byte && other_decade_counter_increments!=((MAX_COLUMNS/2)) ; other_decade_counter_increments++,(*increment_other_decade_counter)())
+    for( other_decade_counter_increments=1; incoming_byte && other_decade_counter_increments!=(MAX_COLUMNS/2) ; other_decade_counter_increments++,(*increment_other_decade_counter)())
       incoming_byte &= read_shift_register_low_level();
 
     // at this point incoming is still true and a loop of the other counter is complete, OR incoming is false, so resync counters
-    for( ; other_decade_counter_increments!=((MAX_COLUMNS/2)) ; other_decade_counter_increments++,(*increment_other_decade_counter)());
+    for( ; other_decade_counter_increments!=(MAX_COLUMNS/2) ; other_decade_counter_increments++,(*increment_other_decade_counter)());
 
     result_byte = incoming_byte;
     // We're back in sync. Has the shift register changed value while we've been away? if so, try again
-  } while(initial_byte != (incoming_byte=read_shift_register_low_level()) );
+  } while(initial_byte != read_shift_register_low_level() );
 
   return result_byte;
 }
@@ -382,7 +380,7 @@ void decode( uint8_t column, uint8_t incoming_byte)
 uint8_t read_shift_register_low_level()
 {
   // Loading time
-  // note, its possible that if 10K pulldown resistors are used this could be reduced to 1ms or less
+  // note, its possible that if 10K pulldown resistors are used this could be reduced to 1us or less
   delayMicroseconds(4);
   
   // Enable shifting, clock high, shift or load high
