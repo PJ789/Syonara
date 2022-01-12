@@ -136,7 +136,7 @@ bool power_led_on               = true;
 void setup() {
 #if DEBUG
 Serial.begin(250000);
-while(!Serial);
+//while(!Serial);
 Serial.println(F("Running"));
 #endif  
 
@@ -193,8 +193,7 @@ unsigned long cycle_count_start  = millis();
 void loop() {
   // static variables for better performance
   static bool    key_activity_detected;
-  static uint8_t incoming;
-  static uint8_t column = 0;
+  register uint8_t column = 0;
 
 
   Keyboard.releaseAll();
@@ -211,7 +210,7 @@ Serial.println("Waiting for keyboard activity ");
 #if DEBUG
 cycles++;
 #endif
-    for (column = 0; column != (MAX_COLUMNS/2); column++, increment_decade_counters())
+    for ( column = 0; column != (MAX_COLUMNS/2); column++, increment_decade_counters())
     {
         // if there is any keyboard activity... keys pressed or keys released scan & decode the keys
       if (read_shift_register_low_level() ) break;
@@ -233,12 +232,25 @@ cycles++;
     for (;  column != (MAX_COLUMNS/2); column++, increment_decade_counters())
     {
       // if there is any keyboard activity... keys pressed or keys released scan & decode the keys
-      if (read_shift_register_low_level() | last_incoming_bytes[column] | last_incoming_bytes[column+MAX_COLUMNS/2] )
+      if (read_shift_register_low_level())
       {
         decode( column,                 read_shift_register( increment_decade_counter2 ) );
         decode( column+(MAX_COLUMNS/2), read_shift_register( increment_decade_counter1 ) );
 
         key_activity_detected = true;
+      }
+      else
+      {
+        if (last_incoming_bytes[column])
+        {
+          decode( column,                 read_shift_register( increment_decade_counter2 ) );
+          key_activity_detected = true;
+        }
+        if (last_incoming_bytes[column+(MAX_COLUMNS/2)])
+        {
+          decode( column+(MAX_COLUMNS/2), read_shift_register( increment_decade_counter1 ) );
+          key_activity_detected = true;
+        }
       }
     }
     key_down = key_activity_detected;
@@ -252,7 +264,7 @@ void reset_decade_counters()
 {
 //  digitalWrite(COUNTER_1_2_RESET_PIN , HIGH);
   PORTB |= (1<<PB1);// pin15
-  __asm__("nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" ); // 375.0ns
+  __asm__("nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" ); // 500.0ns min  pulse width is <500ns
 //  digitalWrite(COUNTER_1_2_RESET_PIN , LOW);
   PORTB &= ~(1<<PB1);// pin15
  
@@ -293,10 +305,10 @@ uint8_t read_shift_register( void (*increment_other_decade_counter)(void) )
 {
   // static variables for better performance
   // Get data from 74HC165
-  static uint8_t incoming_byte;
+  register uint8_t incoming_byte;
   static uint8_t initial_byte;
   static uint8_t result_byte;
-  static uint8_t other_decade_counter_increments;
+  register uint8_t other_decade_counter_increments;
 
   do
   {
@@ -332,11 +344,11 @@ void decode( uint8_t column, uint8_t incoming_byte)
 {
   // static variables for better performance
   static char     key;
-  static uint8_t  row;
-  static uint8_t  last_incoming_byte;
-  static uint8_t  all_changed_bits;
-  static uint8_t  all_pressed_bits;
-  static uint8_t  row_bit_selector;
+  register uint8_t row;
+  register uint8_t last_incoming_byte;
+  register uint8_t all_changed_bits;
+  register uint8_t all_pressed_bits;
+  register uint8_t row_bit_selector;
   static uint32_t *key_debounce_time_ptr;
    
   last_incoming_byte = last_incoming_bytes[column];
@@ -402,16 +414,18 @@ uint8_t read_shift_register_low_level()
 {
   // Loading time
   // note, its possible that if 10K pulldown resistors are used this could be reduced to 1us or less
-  delayMicroseconds(4);
+  __asm__("nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" ); // 625ns delay
+  __asm__("nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" ); // 625ns delay
+  __asm__("nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" ); // 625ns delay
+  __asm__("nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" "nop\n\t" ); // 625ns delay
   
   // Enable shifting, clock high, shift or load high
   //digitalWrite(CLOCK_PIN, HIGH);
-  //PORTD |= (1<<PD0);// pin3
-  //__asm__("nop\n\t"); // 62.5ns delay
+  PORTD |= (1<<PD0);// pin3
+  __asm__("nop\n\t"); // 62.5ns delay
   //digitalWrite(SHIFT_OR_LOAD_PIN, HIGH);
-  //PORTD |= (1<<PD1);// pin2
-  //__asm__("nop\n\t"); // 62.5ns delay
-  PORTD |= (1<<PD0)|(1<<PD1);// pin3 + pin2
+  PORTD |= (1<<PD1);// pin2
+  __asm__("nop\n\t"); // 62.5ns delay
 
   // Get data from 74HC165
   last_shift_register_byte = shiftIn(SERIAL_PIN, CLOCK_PIN, MSBFIRST);
