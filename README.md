@@ -1,11 +1,13 @@
 # Syonara
-Arduino SS Micro (Leonardo) firmware for a Razer Cynosa Lite, AK5000, or similar single zone RGB keyboard. Also suitable for ordinary keyboards.
+Open source firmware for a Razer Cynosa Lite, AK5000, or similar single zone RGB keyboard. Also suitable for ordinary keyboards.
 
-This keyboard firmware is designed for an SS Micro Arduino MCU board (based on the ATMega32u4, similar to a Leonardo, Pro Micro, or Teensy 2.0).
+This keyboard firmware assumes the complete replacement of the original MCU circuit with an SS Micro, a keyboard scanning circuit using two CD4017 decade counters to scan the 20 matrix columns in tandem, a 74HC165 shift register providing parallel to serial output from the matrix rows, a strip of WS2812 Neopixels to replace the original keyboard status LEDs, and a PWM amplifier circuit to power the RGB backlights.
+
+The firmware is designed for an "SS Micro" MCU board, a compact MCU based on the ATMega32u4 (similar to an [Arduino Micro](https://store.arduino.cc/products/arduino-micro),  [Arduino Leonardo](https://www.arduino.cc/en/Main/Arduino_BoardLeonardo), [Sparkfun Pro Micro](https://www.sparkfun.com/products/12640), [MellBell PICO](https://mellbell.cc/products/pico), or [Teensy 2.0](https://www.pjrc.com/teensy/index.html)).
 
 The firmware supports all keys, single zone RGB backlighting, Caps/Num/Shift lock Neopixel LED functions, and one-per-key debounce timer.
 
-It assumes the complete replacement of the original MCU circuit with an SS Micro, a keyboard scanning circuit using two 4017 decade counters to scan the 20 matrix columns in tandem, a 74HC165 shift register providing parallel to serial output from the matrix rows, a strip of WS2812 Neopixels to replace the original keyboard status LEDs, and a PWM amplifier circuit to power the RGB backlights.
+
 
 - [Syonara](#syonara)
   - [Motivation - Why do this to a working keyboard?](#motivation---why-do-this-to-a-working-keyboard)
