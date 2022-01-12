@@ -192,42 +192,60 @@ unsigned long cycle_count_start  = millis();
 #endif
 void loop() {
   // static variables for better performance
-  static bool    key_press_detected;
+  static bool    key_activity_detected;
   static uint8_t incoming;
-  static uint8_t column;
+  static uint8_t column = 0;
+
+
+  Keyboard.releaseAll();
+  reset_decade_counters();
+  column = 0;
+  key_down = false;
+  key_activity_detected = false;
+
+#if DEBUG
+Serial.println("Waiting for keyboard activity ");
+#endif
+  do
+  {
 #if DEBUG
 cycles++;
 #endif
-  key_press_detected = false;
+    for (column = 0; column != (MAX_COLUMNS/2); column++, increment_decade_counters())
+    {
+        // if there is any keyboard activity... keys pressed or keys released scan & decode the keys
+      if (read_shift_register_low_level() ) break;
+    }
+  }
+  while(!last_shift_register_byte);
+#if DEBUG
+Serial.print("Key press detected on column ");
+Serial.println(column);
+#endif
+  key_down = true;
 
-  for (column = 0; column != (MAX_COLUMNS/2); column++, increment_decade_counters())
+  do
   {
-    // if there is any keyboard activity... keys pressed or keys released scan & decode the keys
-    if (read_shift_register_low_level() | last_incoming_bytes[column] | last_incoming_bytes[column+MAX_COLUMNS/2] )
+#if DEBUG
+cycles++;
+#endif
+    key_activity_detected = false;
+    for (;  column != (MAX_COLUMNS/2); column++, increment_decade_counters())
     {
-      decode( column,                 read_shift_register( increment_decade_counter2 ) );
-      decode( column+(MAX_COLUMNS/2), read_shift_register( increment_decade_counter1 ) );
-  
-      key_press_detected = true;
+      // if there is any keyboard activity... keys pressed or keys released scan & decode the keys
+      if (read_shift_register_low_level() | last_incoming_bytes[column] | last_incoming_bytes[column+MAX_COLUMNS/2] )
+      {
+        decode( column,                 read_shift_register( increment_decade_counter2 ) );
+        decode( column+(MAX_COLUMNS/2), read_shift_register( increment_decade_counter1 ) );
+
+        key_activity_detected = true;
+      }
     }
-        
+    key_down = key_activity_detected;
+    column = 0;
   }
-  
-  // Was any keypress detected in this cycle?
-  if (key_press_detected)
-  {
-    key_down =  true;
-  }
-  else // do idle stuff while no key pressed
-  {
-    // if all keys have been released reset the decade counters to keep them in good sync
-    if (key_down)
-    {
-      Keyboard.releaseAll();
-      reset_decade_counters();
-      key_down = false;
-    }
-  }
+  while(key_down);
+
 }
 
 void reset_decade_counters()
@@ -294,8 +312,11 @@ uint8_t read_shift_register( void (*increment_other_decade_counter)(void) )
 
     (*increment_other_decade_counter)();
 
-    for( other_decade_counter_increments=1; incoming_byte && other_decade_counter_increments!=(MAX_COLUMNS/2) ; other_decade_counter_increments++,(*increment_other_decade_counter)())
+    for( other_decade_counter_increments=1; other_decade_counter_increments!=(MAX_COLUMNS/2) ; other_decade_counter_increments++,(*increment_other_decade_counter)())
+    {
       incoming_byte &= read_shift_register_low_level();
+      if (!incoming_byte) break;
+    }
 
     // at this point incoming is still true and a loop of the other counter is complete, OR incoming is false, so resync counters
     for( ; other_decade_counter_increments!=(MAX_COLUMNS/2) ; other_decade_counter_increments++,(*increment_other_decade_counter)());
