@@ -210,11 +210,28 @@ Serial.println("Waiting for keyboard activity ");
 #if DEBUG
 cycles++;
 #endif
-    for ( column = 0; column != (MAX_COLUMNS/2); column++, increment_decade_counters())
-    {
-        // if there is any keyboard activity... keys pressed or keys released scan & decode the keys
-      if (read_shift_register_low_level() ) break;
-    }
+   // this code is not pretty, but it is intended to run as fast as possible
+    column=0;    if (read_shift_register_low_level() ) break;
+    increment_decade_counters();
+    column=1;    if (read_shift_register_low_level() ) break;
+    increment_decade_counters();
+    column=2;    if (read_shift_register_low_level() ) break;
+    increment_decade_counters();
+    column=3;    if (read_shift_register_low_level() ) break;
+    increment_decade_counters();
+    column=4;    if (read_shift_register_low_level() ) break;
+    increment_decade_counters();
+    column=5;    if (read_shift_register_low_level() ) break;
+    increment_decade_counters();
+    column=6;    if (read_shift_register_low_level() ) break;
+    increment_decade_counters();
+    column=7;    if (read_shift_register_low_level() ) break;
+    increment_decade_counters();
+    column=8;    if (read_shift_register_low_level() ) break;
+    increment_decade_counters();
+    column=9;    if (read_shift_register_low_level() ) break;
+    increment_decade_counters();
+
   }
   while(!last_shift_register_byte);
 #if DEBUG
