@@ -30,7 +30,7 @@
  -  3x IRLZ44N MOSFET as current amplifier to SS micro pinout
  -  3x 10K ohm gate pulldown resistors
 
-Also solder & soldering iron, hot glue & glue gun, heatshrink, and signal wires.
+Also solder & soldering iron, hot glue & glue gun, heatshrink, and signal wires
 
 ## Coloured Wires;
  -  20x reels of multi-coloured signal wire
@@ -40,4 +40,4 @@ Also solder & soldering iron, hot glue & glue gun, heatshrink, and signal wires.
 
 ## Mounting;
  -  hot glue or plastic rivets to secure components in place
- - a hacksaw may be needed to adjust the height of the white plastic LED lense, I found I needed to trim mine in half.
+ - a hacksaw may be needed to adjust the height of the white plastic LED lense, I found I needed to trim mine in half to stop the keyboard bulging
