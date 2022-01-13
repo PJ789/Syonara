@@ -6,8 +6,8 @@
 
 ## Circuit 1: keyboard scanning circuit;
  -  1x  prototype board, to install under keypad (nb; assembly should minimize height at all cost)
- -  2x  4017 decade counters
- -  1x  74hc165 shift registers
+ -  2x  CD4017 decade counters, or equivalent
+ -  1x  74HC165 shift registers
  -  20x 1N4148 signal diodes to protect outputs from decade counters
  -  8x  1N4148 signal diodes to protect inputs to shift register (recommended)
  -  1x  9 pin 47K ohm SIP [resistor network array acting](https://www.youtube.com/watch?v=_DJ_xLOxnpE) as pull down resistors on the 8 shift register inputs. _if you have the option, 10K ohm would probably be a better choice for faster shift register operation_
