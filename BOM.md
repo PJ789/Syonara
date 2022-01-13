@@ -40,3 +40,4 @@ Also solder & soldering iron, hot glue & glue gun, heatshrink, and signal wires.
 
 ## Mounting;
  -  hot glue or plastic rivets to secure components in place
+ - a hacksaw may be needed to adjust the height of the white plastic LED lense, I found I needed to trim mine in half.
