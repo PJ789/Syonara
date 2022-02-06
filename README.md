@@ -5,7 +5,7 @@ This keyboard firmware assumes the complete replacement of the original MCU circ
 
 The firmware is designed for an ["SS Micro"](https://www.diymore.cc/products/pro-micro-mini-ss-beetle-virtual-keyboard-badusb-atmega32u4-module-for-arduino-16mhz-3-3v-5v-io-uart-i2c-spi-pwm-interface-board) MCU board, a compact MCU based on the ATMega32u4 (similar to an [Arduino Micro](https://store.arduino.cc/products/arduino-micro),  [Arduino Leonardo](https://www.arduino.cc/en/Main/Arduino_BoardLeonardo), [Sparkfun Pro Micro](https://www.sparkfun.com/products/12640), [MellBell PICO](https://mellbell.cc/products/pico), or [Teensy 2.0](https://www.pjrc.com/teensy/index.html)).
 
-The firmware supports all keys, single zone RGB backlighting, Caps/Num/Shift lock Neopixel LED functions, and one-per-key debounce timer.
+The firmware supports all keys, single zone RGB backlighting, Caps/Num/Shift lock Neopixel LED functions, one-per-key debounce timer, and one-per-key anti-ghosting flags.
 
 
 
