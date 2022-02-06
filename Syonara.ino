@@ -1,6 +1,6 @@
 /*
     Syonara - Arduino SS Micro (Leonardo) firmware for Razer Cynosa Lite and similar 
-              single zone RGB keybaords
+              single zone RGB keyboards
 
     Copyright 2022 Peter John 
 
