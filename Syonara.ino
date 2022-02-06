@@ -122,10 +122,12 @@ uint32_t key_debounce_times[MAX_COLUMNS][MAX_ROWS];
 uint8_t last_incoming_bytes[MAX_COLUMNS];
 uint8_t last_shift_register_byte;
 
+byte anti_ghost[MAX_COLUMNS];
+
 #define EFFECT_CHANGE_KEY KEY_PAUSE
 #define MAX_EFFECT 15
 uint8_t effect                  = 0;
-bool key_down                   = false;
+bool keyboard_activity_detected = false;
 volatile bool led_status_update = true;
 bool caps_lock_on               = false;
 bool scroll_lock_on             = false;
@@ -171,6 +173,7 @@ Serial.println(F("Running"));
 
   memset(last_incoming_bytes, 0, sizeof(last_incoming_bytes));
   memset(key_debounce_times,  0, sizeof(key_debounce_times));
+  memset(anti_ghost, 0, sizeof(anti_ghost));
 
   reset_decade_counters();
   
@@ -199,8 +202,7 @@ void loop() {
   Keyboard.releaseAll();
   reset_decade_counters();
   column = 0;
-  key_down = false;
-  key_activity_detected = false;
+  keyboard_activity_detected = false;
 
 #if DEBUG
 Serial.println("Waiting for keyboard activity ");
@@ -238,42 +240,45 @@ cycles++;
 Serial.print("Key press detected on column ");
 Serial.println(column);
 #endif
-  key_down = true;
-
+  clearAntiGhosting();
+  
   do
   {
 #if DEBUG
 cycles++;
 #endif
-    key_activity_detected = false;
+    keyboard_activity_detected = false;
     for (;  column != (MAX_COLUMNS/2); column++, increment_decade_counters())
     {
       // if there is any keyboard activity... keys pressed or keys released scan & decode the keys
-      if (read_shift_register_low_level())
+      if (read_shift_register_low_level()) // keys pressed
       {
         decode( column,                 read_shift_register( increment_decade_counter2 ) );
+        refreshAntiGhosting();
         decode( column+(MAX_COLUMNS/2), read_shift_register( increment_decade_counter1 ) );
+        refreshAntiGhosting();
 
-        key_activity_detected = true;
+        keyboard_activity_detected = true;
       }
-      else
+      else // have any keys been released?
       {
-        if (last_incoming_bytes[column])
+        if (last_incoming_bytes[column]) // keys released? cols 0-9
         {
           decode( column,                 read_shift_register( increment_decade_counter2 ) );
-          key_activity_detected = true;
+          keyboard_activity_detected = true;
+          refreshAntiGhosting();
         }
-        if (last_incoming_bytes[column+(MAX_COLUMNS/2)])
+        if (last_incoming_bytes[column+(MAX_COLUMNS/2)])  // keys released? cols 10-19
         {
           decode( column+(MAX_COLUMNS/2), read_shift_register( increment_decade_counter1 ) );
-          key_activity_detected = true;
+          keyboard_activity_detected = true;
+          refreshAntiGhosting();
         }
       }
     }
-    key_down = key_activity_detected;
     column = 0;
   }
-  while(key_down);
+  while(keyboard_activity_detected);
 
 }
 
@@ -396,11 +401,20 @@ void decode( uint8_t column, uint8_t incoming_byte)
         // is a key pressed that wasn't previously pressed? note the deliberate assignment to application_led_on
         if ((application_led_on = (all_pressed_bits & row_bit_selector)))
         {
+          if (!(anti_ghost[column]&row_bit_selector))
+          {
 #if DEBUG
-          debugReportKey(column, row, incoming_byte, last_incoming_byte);
+            debugReportKey(column, row, incoming_byte, last_incoming_byte);
 #endif
-          Keyboard.press(key);
-          if (key==((char)EFFECT_CHANGE_KEY)) EEPROM.update(0,(effect=(effect<MAX_EFFECT)?effect+1:0));
+            Keyboard.press(key);
+            if (key==((char)EFFECT_CHANGE_KEY)) EEPROM.update(0,(effect=(effect<MAX_EFFECT)?effect+1:0));
+          }
+#if DEBUG
+          else
+          {
+            debugReportAntiGhost(column, row, incoming_byte, last_incoming_byte);
+          }
+#endif
         }
         // a key that was previously pressed has been released
         else 
@@ -527,7 +541,7 @@ SIGNAL(TIMER0_COMPA_vect)
       }
  
       r = ( scroll_lock_on || num_lock_on  ) ?   0:r;
-      r = ( key_down       || caps_lock_on ) ? 254:r;
+      r = ( keyboard_activity_detected || caps_lock_on ) ? 254:r;
 
       analogWrite(RED_PIN, r );
 
@@ -572,7 +586,7 @@ SIGNAL(TIMER0_COMPA_vect)
       }
     
       g = ( caps_lock_on || num_lock_on   ) ?   0:g;
-      g = ( key_down     || scroll_lock_on) ? 254:g;
+      g = ( keyboard_activity_detected || scroll_lock_on) ? 254:g;
       
       analogWrite(GREEN_PIN, g );
 
@@ -618,7 +632,7 @@ SIGNAL(TIMER0_COMPA_vect)
       }
  
       b = ( scroll_lock_on || caps_lock_on )?   0:b;
-      b = ( key_down       || num_lock_on  )? 254:b;
+      b = ( keyboard_activity_detected || num_lock_on  )? 254:b;
 
       analogWrite(BLUE_PIN,  b );
 
@@ -632,7 +646,7 @@ SIGNAL(TIMER0_COMPA_vect)
         led_status_update = false;
       }
       backlight_color = keyboard_status_leds.Color(r,g,b);
-      if (key_down)
+      if (keyboard_activity_detected)
       {
         for(leds=0; leds<NUM_LEDS; leds+=2)
           keyboard_status_leds.setPixelColor(leds, White);
@@ -659,19 +673,118 @@ void keyboardLedsStatusReportCallback()
   led_status_update = true;
 }
 
+void clearAntiGhosting()
+{
+    memset(anti_ghost, 0, sizeof(anti_ghost));
+}
+void refreshAntiGhosting()
+{
+  register uint8_t column = 0;
+  register uint8_t row = 0;
+
+  clearAntiGhosting();
+  
+  for( column=0; column<MAX_COLUMNS; column++)
+  {
+    setRowAntiGhosting( column );    
+  }
+  for( row=0; row<MAX_ROWS; row++)
+  {
+    setColumnAntiGhosting( row );    
+  }
+  setMultiKeyAntiGhosting();    
+}
+void setRowAntiGhosting( uint8_t column )
+{
+  register uint8_t row                = 0;
+  register uint8_t row_bit_selector   = 0;
+  register uint8_t last_incoming_byte = last_incoming_bytes[column];
+
+  // check if more than one row (bit) is set for this column
+  if (last_incoming_byte & (last_incoming_byte-1))
+  {
+    // more than one row is set for this column
+    // lock out affected rows to prevent ghosting on other columns
+    for(row_bit_selector=1;row_bit_selector!=0;row_bit_selector<<=1)
+    {
+      if (last_incoming_byte&row_bit_selector)
+      {
+        anti_ghost[column]|=row_bit_selector;
+      }
+    }
+  }
+}
+void setColumnAntiGhosting( uint8_t row )
+{
+  register uint8_t column             = 0;
+  register uint8_t row_bit_selector   = 0;
+  register uint8_t row_bit_counter    = 0;
+
+  row_bit_selector=1<<row;
+  // check if more than one column has this row (bit) set
+  for( column=0; column<MAX_COLUMNS; column++)
+  {
+    if (last_incoming_bytes[column]&row_bit_selector) row_bit_counter++;
+  }
+
+  // more than one column has this row bit set
+  // lock out affected columns to prevent ghosting on other rows
+  if (row_bit_counter>1)
+  {
+    for( column=0; column<MAX_COLUMNS; column++)
+    {
+      if (last_incoming_bytes[column]&row_bit_selector) anti_ghost[column]=0b11111111;
+    }
+  }
+
+}
+void setMultiKeyAntiGhosting()
+{
+  register uint8_t column             = 0;
+  register uint8_t row_bit_selector   = 0;
+  register uint8_t key_counter        = 0;
+  register uint8_t anti_ghost_mask    = 0;
+  
+  // check if more than one key is pressed
+  for( column=0; column<MAX_COLUMNS && key_counter!=2; column++)
+  {
+    if ( last_incoming_bytes[column]!=0) key_counter+=1;
+  }
+  
+  if (key_counter==2)
+  {
+    // more than one key is active on different columns
+    // lock out all columns/rows combos to prevent ghosting
+    for( column=0; column<MAX_COLUMNS; column++)
+    {
+      anti_ghost_mask |= last_incoming_bytes[column];
+    }
+
+    for( column=0; column<MAX_COLUMNS; column++)
+    {
+      if ( last_incoming_bytes[column]!=0) anti_ghost[column] |= anti_ghost_mask;
+    }
+  }
+}
 #if DEBUG
 void debugReportKey(uint8_t column, uint8_t row, uint8_t incoming_byte, uint8_t last_incoming_byte)
 {
   Serial.println(F("-----------------------------------"));
+  Serial.println(F("Key change"));
+  debugReport( column,  row,  incoming_byte,  last_incoming_byte);
+}
+void debugReportAntiGhost(uint8_t column, uint8_t row, uint8_t incoming_byte, uint8_t last_incoming_byte)
+{
+  Serial.println(F("-----------------------------------"));
+  Serial.println(F("Anti-ghosting hit, keystroke suppressed"));
+  debugReport( column,  row,  incoming_byte,  last_incoming_byte);
+}
+void debugReport(uint8_t column, uint8_t row, uint8_t incoming_byte, uint8_t last_incoming_byte)
+{
   Serial.print(F("Row/Column ["));
   Serial.print(row);
   Serial.print(F("/"));
   Serial.print(column);
-  Serial.println(F("]"));
-  Serial.println(F("Last Incoming/Incoming bits ["));
-  printByteAsBinary(last_incoming_byte,8);
-  Serial.println(F("/"));
-  printByteAsBinary(incoming_byte,8);
   Serial.println(F("]"));
   if (incoming_byte>last_incoming_byte)
   {
@@ -698,7 +811,6 @@ void debugReportKey(uint8_t column, uint8_t row, uint8_t incoming_byte, uint8_t 
   cycles = 0;
   cycle_count_start  = millis();
 }
-
 void printByteAsBinary(uint8_t number, uint8_t bits)
 {
   uint8_t bit_index;
