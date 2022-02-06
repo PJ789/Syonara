@@ -705,12 +705,9 @@ void setRowAntiGhosting( uint8_t column )
   {
     // more than one row is set for this column
     // lock out affected rows to prevent ghosting on other columns
-    for(row_bit_selector=1;row_bit_selector!=0;row_bit_selector<<=1)
+    for( column=0; column<MAX_COLUMNS; column++)
     {
-      if (last_incoming_byte&row_bit_selector)
-      {
-        anti_ghost[column]|=row_bit_selector;
-      }
+        anti_ghost[column]|=last_incoming_byte;
     }
   }
 }
