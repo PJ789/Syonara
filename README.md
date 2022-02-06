@@ -44,6 +44,7 @@ The firmware supports all keys, single zone RGB backlighting, Caps/Num/Shift loc
  - Keyboard flickers when keys are pressed to confirm activation
  - Status LED indicates when keystrokes are being sent
  - One-per-key debounce timer.
+ - One-per-key anti-ghosting flags.
 
 ## Dependencies
 
@@ -175,3 +176,5 @@ Enabling the Arduino GCC -O3 compiler optimisation gives a useful 10% boost to t
 11. I have a [WaveShare Rp2040-Zero](https://www.waveshare.com/rp2040-zero.htm) device that looks like a promising alternative to the SSMicro as an  MCU for keyboard hacks. Faster dual cores could be interesting; perhaps one running a decoding thread while the other core scans the matrix?. At present I don't think the speed of the code execution is the biggest issue (the limiting factor is more the speed of the decade counters & shift register, and the debounce delay for the switches).
 12. Batteries and bluetooth modules to convert to wireless? Or an ESP32 perhaps.
 13. The circuit diagram shows a 47K resistor array used as pull down on the serial register inputs. With hindsight, this is probably too high... and makes the delay before the shift register can be read reliably after a key has been released higher than it need be (4 microseconds). I'd suggest a 10K might be a better choice; with a lower resistor the delay could be reduced closer to one microsecond or less. See also [this conversation on StackExchange](https://electronics.stackexchange.com/questions/327131/requirement-of-pul-down-resistor-of-10k-for-input-shift-register-74hc165-after)
+6. ~~Implement a per key anti-ghosting algorithm~~ _done 2022-02-22_
+  
