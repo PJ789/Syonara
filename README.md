@@ -82,7 +82,7 @@ The scanning circuit is 'hot-wired' onto the original (unused) circuit board, us
 
 A simple 9 Neopixel strip (taken from a 144 pixels/meter strip) replaces the original LEDs, and is placed on top of the original (unused) keyboard LED circuit. A piece of insulating tape under the Neopixel strip avoids shorts.
 
-The Syonara firmware sets the correspondng LED colours for each status indication.
+The Syonara firmware sets the corresponding LED colours for each status indication.
 
 ### Circuit 3: Keyboard RGB Back Light Circuit
 
@@ -151,13 +151,13 @@ Enabling the Arduino GCC -O3 compiler optimisation gives a useful 10% boost to t
 
 ## Tips & Tricks
 
- - If you're using a different keyboard, you can quickly discover your keymap. Make up the circuits described, connect to the columns & rows of your keyboard, and enable the debug feature in the source code (change #define DEBUG to 1 from 0). When you connect a serial terminal to the serial line (250000bps), your Arduino will now report which row/column it believes was pressed/released, and which key that corresponds to. Now go through each key on the keyboard, noting the reported row/column, and if the reported key is incorrect, rearrange the keyboard maps in the firmware.
- - Keep your wires long until you need to trim them. This will help you find an arrangement under the keyboard that suits
+ - If you're using a different keyboard, you can quickly discover your keymap. Make up the circuits described, connect to the columns & rows of your keyboard, and enable the debug feature in the source code (change #define DEBUG from 0 to 1). When you connect a serial terminal to the serial line (250000bps), your Arduino will now report which row/column it believes was pressed/released, and which key that corresponds to. Now go through each key on the keyboard, noting the reported row/column, and if the reported key is incorrect, rearrange the keyboard maps in the firmware.
+ - Keep your wires long until you need to trim them. This will help you find an arrangement under the keyboard that fits
  - Keep your circuits small & low profile...use every opportunity to avoid height/size. If the circuits are too high/too big to fit, that's bad. Measure the target deployment area, and allow 5mm room on all sides for signal wire routing.
- - Use the original circuit card as a donor for the contacts to the keyboard membrane, and solder to the test points/tracks on the circuit card. To do this accurately you might need a lens. Loupes are absolutely perfect for this job. Prep the card and the wire with a little solder, hold the wire on the target point, and dab briefly with a soldering iron. If you have flux that might also help; perhaps dab a little on the circuit board to encourage melting/flowing of the solder.
- - Old Centronics printer cables are a priceless source of multi-coloured wires. They have 25 lines, usually each with a different colour (or colour & black band). You can pick them up at charity shops & junk sales if you don't have one lying around. 
+ - Use the original circuit card as a donor for the contacts to the keyboard membrane, and solder to the test points/tracks on the circuit card. To do this accurately you might need a lens. Loupes are absolutely perfect for this job. Prep the donor circuit card and the wire with a little solder, hold the wire on the target point, and dab briefly with a soldering iron. If you have flux that might also help; perhaps dab a little on the circuit board to encourage melting/flowing of the solder.
+ - Old Centronics printer cables are a priceless source of multi-coloured signal wires. They have 25 lines, usually each with a different colour (or colour & black band). You can pick them up at charity shops & junk sales if you don't have one lying around. 
  - attach wires to every pin of your MCU, so that you can change the wiring/pin arrangement easily once it is all in place. This reduces the difficultly of disassembling and reassembling if you've made a mistake. 
- - Use heatshrink tube to cover the wire joints, and the end of any unused wires. Bend unused wires over before heatshrinking (to prevent the heatshink coming off).
+ - Use heatshrink tube to cover the wire joints, and the end of any unused wires. Bend unused wires over before heatshrinking (the hooked wire then prevents the heatshink coming off).
  - Use hotglue or plastic rivets to keep wires & circuit cards where you want them to be. Use the hotglue to hold wires onto their solder joints.
  - Cut pathways through the keyboard support walls, if necessary, using a craft knife. 
  
@@ -165,7 +165,7 @@ Enabling the Arduino GCC -O3 compiler optimisation gives a useful 10% boost to t
 
 1. Add a brightness control to the backlight circuit, perhaps using an analog input. 
 2. Support for standard LED colour setting protocols.
-3. The circuit design counts over 20 matrix columns, supplying power to each column via two decade counters, then reading the output on the 8 matrix rows as a byte. Because of the keyboard membrane design, this can create false key presses if two keys on the same row/different columns are pressed at the same time (causing power to be fed to a second column) AND another key is simultaneously pressed on either column. The likelihood of this happening is reasonably low; it could be avoided by better keyboard membrane design (requires a new keyboard membrane).
+3. ~~The circuit design counts over 20 matrix columns, supplying power to each column via two decade counters, then reading the output on the 8 matrix rows as a byte. Because of the keyboard membrane design, this can create false key presses if two keys on the same row/different columns are pressed at the same time (causing power to be fed to a second column) AND another key is simultaneously pressed on either column. The likelihood of this happening is reasonably low; it could be avoided by better keyboard membrane design (requires a new keyboard membrane)~~ _fixed 2022-02-22 see item 14_.
 4. Replace the backlight circuit with _moar_ Neopixels
 5. ~~Put the two decade counter clock/reset pins on the same AVR port, so both could be reset or clocked in one operation (saving 62ns). The decade counters are never reset independently of one another. (see also [Syonara circuit diagram V2](design_ideas/Syonara%20Circuit%20Diagram%20V2.png) for an illustration, and idea #10).~~ _done 2022-01-07, designs updated_
 6. ~~Implement a per column, or row/column, debounce algorithm~~ _done 2022-01-08, designs updated_
@@ -176,5 +176,5 @@ Enabling the Arduino GCC -O3 compiler optimisation gives a useful 10% boost to t
 11. I have a [WaveShare Rp2040-Zero](https://www.waveshare.com/rp2040-zero.htm) device that looks like a promising alternative to the SSMicro as an  MCU for keyboard hacks. Faster dual cores could be interesting; perhaps one running a decoding thread while the other core scans the matrix?. At present I don't think the speed of the code execution is the biggest issue (the limiting factor is more the speed of the decade counters & shift register, and the debounce delay for the switches).
 12. Batteries and bluetooth modules to convert to wireless? Or an ESP32 perhaps.
 13. The circuit diagram shows a 47K resistor array used as pull down on the serial register inputs. With hindsight, this is probably too high... and makes the delay before the shift register can be read reliably after a key has been released higher than it need be (4 microseconds). I'd suggest a 10K might be a better choice; with a lower resistor the delay could be reduced closer to one microsecond or less. See also [this conversation on StackExchange](https://electronics.stackexchange.com/questions/327131/requirement-of-pul-down-resistor-of-10k-for-input-shift-register-74hc165-after)
-6. ~~Implement a per key anti-ghosting algorithm~~ _done 2022-02-22_
+14. ~~Implement a per key anti-ghosting algorithm~~ _done 2022-02-22_
   
