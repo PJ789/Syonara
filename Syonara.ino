@@ -684,53 +684,60 @@ void refreshAntiGhosting()
 
   clearAntiGhosting();
   
-  for( column=0; column<MAX_COLUMNS; column++)
-  {
-    setRowAntiGhosting( column );    
-  }
-  for( row=0; row<MAX_ROWS; row++)
-  {
-    setColumnAntiGhosting( row );    
-  }
+  setRowAntiGhosting();    
+  setColumnAntiGhosting();    
   setMultiKeyAntiGhosting();    
 }
-void setRowAntiGhosting( uint8_t column )
+void setRowAntiGhosting()
 {
-  register uint8_t row                = 0;
-  register uint8_t row_bit_selector   = 0;
-  register uint8_t last_incoming_byte = last_incoming_bytes[column];
-
-  // check if more than one row (bit) is set for this column
-  if (last_incoming_byte & (last_incoming_byte-1))
+  register uint8_t column             = 0;
+  register uint8_t column_inner       = 0;
+  register uint8_t last_incoming_byte = 0;
+  register uint8_t anti_ghost_mask    = 0;
+  
+  for( column=0; column<MAX_COLUMNS && anti_ghost_mask!=0b11111111; column++)
   {
-    // more than one row is set for this column
-    // lock out affected rows to prevent ghosting on other columns
+    last_incoming_byte = last_incoming_bytes[column];
+    // check if more than one row (bit) is set for this column
+    if (last_incoming_byte & (last_incoming_byte-1))
+    {
+      // more than one row is set for this column, add rows to maks
+      anti_ghost_mask|=last_incoming_byte;
+    }
+  }
+  if ( anti_ghost_mask )
+  {
+    // use mask to lock out affected rows to prevent ghosting on other columns
     for( column=0; column<MAX_COLUMNS; column++)
     {
-        anti_ghost[column]|=last_incoming_byte;
+      anti_ghost[column]|=anti_ghost_mask;
     }
   }
 }
-void setColumnAntiGhosting( uint8_t row )
+void setColumnAntiGhosting(  )
 {
   register uint8_t column             = 0;
   register uint8_t row_bit_selector   = 0;
   register uint8_t row_bit_counter    = 0;
 
-  row_bit_selector=1<<row;
-  // check if more than one column has this row (bit) set
-  for( column=0; column<MAX_COLUMNS; column++)
+  for( row_bit_selector=1; row_bit_selector; row_bit_selector<<=1)
   {
-    if (last_incoming_bytes[column]&row_bit_selector) row_bit_counter++;
-  }
-
-  // more than one column has this row bit set
-  // lock out affected columns to prevent ghosting on other rows
-  if (row_bit_counter>1)
-  {
-    for( column=0; column<MAX_COLUMNS; column++)
+    row_bit_counter = 0;
+    
+    // check if more than one column has this row (bit) set
+    for( column=0; column<MAX_COLUMNS && row_bit_counter!=2; column++)
     {
-      if (last_incoming_bytes[column]&row_bit_selector) anti_ghost[column]=0b11111111;
+      if (last_incoming_bytes[column]&row_bit_selector) row_bit_counter++;
+    }
+
+    // more than one column has this row bit set
+    // lock out affected columns to prevent ghosting on other rows
+    if (row_bit_counter==2)
+    {
+      for( column=0; column<MAX_COLUMNS; column++)
+      {
+        if (last_incoming_bytes[column]&row_bit_selector) anti_ghost[column]=0b11111111;
+      }
     }
   }
 
